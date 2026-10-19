@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      APP_DB_PATH: /app/data/typing.db
+      COOKIE_SECURE: ${COOKIE_SECURE:-0}
+    volumes:
+      - product_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  product_data:
