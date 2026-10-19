@@ -25,7 +25,7 @@ DIST = ROOT / "dist"
 COOKIE = "hero_session"
 SESSION_DAYS = 30
 
-app = FastAPI(title="Печать героя API", version="0.1.0")
+app = FastAPI(title="Real API", version="0.2.0")
 
 
 @contextmanager
@@ -90,6 +90,9 @@ def initialize() -> None:
             CREATE INDEX IF NOT EXISTS idx_practice_date ON practice_sessions(created_at);
             """
         )
+        columns = {row["name"] for row in db.execute("PRAGMA table_info(users)")}
+        if "avatar" not in columns:
+            db.execute("ALTER TABLE users ADD COLUMN avatar INTEGER NOT NULL DEFAULT 1")
 
 
 def hash_password(password: str) -> str:
@@ -110,7 +113,7 @@ def verify_password(password: str, encoded: str) -> bool:
 
 
 def public_user(row: sqlite3.Row) -> dict:
-    return {"id": row["id"], "name": row["name"], "email": row["email"], "xp": row["xp"], "level": row["xp"] // 250 + 1}
+    return {"id": row["id"], "name": row["name"], "email": row["email"], "avatar": row["avatar"], "xp": row["xp"], "level": row["xp"] // 250 + 1}
 
 
 def lookup_user(token: str | None) -> dict | None:
@@ -164,7 +167,7 @@ class LoginBody(BaseModel):
 class PracticeBody(BaseModel):
     mode: Literal["words", "sentences", "code", "symbols"]
     language: Literal["ru", "en"]
-    difficulty: int = Field(ge=1, le=3)
+    difficulty: int = Field(ge=1, le=8)
     elapsed_ms: int = Field(ge=500, le=3_600_000)
     correct_chars: int = Field(ge=1, le=20_000)
     errors: int = Field(ge=0, le=20_000)
@@ -186,8 +189,8 @@ def register(body: RegisterBody, response: Response):
     with database() as db:
         try:
             cursor = db.execute(
-                "INSERT INTO users(email, name, password_hash, created_at) VALUES (?, ?, ?, ?)",
-                (email, name, hash_password(body.password), utc_now()),
+                "INSERT INTO users(email, name, password_hash, avatar, created_at) VALUES (?, ?, ?, ?, ?)",
+                (email, name, hash_password(body.password), secrets.randbelow(10) + 1, utc_now()),
             )
             user_id = cursor.lastrowid
         except sqlite3.IntegrityError:
@@ -218,6 +221,24 @@ def logout(response: Response, hero_session: Annotated[str | None, Cookie()] = N
 @app.get("/api/auth/me")
 def me(user: Annotated[dict | None, Depends(optional_user)]):
     return {"user": user}
+
+
+class ProfileBody(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=40)
+    avatar: int | None = Field(default=None, ge=1, le=10)
+
+
+@app.patch("/api/profile")
+def update_profile(body: ProfileBody, user: Annotated[dict, Depends(require_user)]):
+    if body.name is None and body.avatar is None:
+        raise HTTPException(422, "Нет изменений")
+    name = body.name.strip() if body.name is not None else user["name"]
+    if len(name) < 2:
+        raise HTTPException(422, "Имя должно содержать минимум два символа")
+    with database() as db:
+        db.execute("UPDATE users SET name = ?, avatar = ? WHERE id = ?", (name, body.avatar or user["avatar"], user["id"]))
+        row = db.execute("SELECT * FROM users WHERE id = ?", (user["id"],)).fetchone()
+    return public_user(row)
 
 
 ACHIEVEMENTS = {
@@ -317,7 +338,7 @@ def leaderboard(metric: Literal["wpm", "accuracy", "xp"] = "wpm", period: Litera
     with database() as db:
         if metric == "xp":
             rows = db.execute(
-                """SELECT u.id, u.name, COALESCE(SUM(p.xp_earned), 0) AS value,
+                """SELECT u.id, u.name, u.avatar, COALESCE(SUM(p.xp_earned), 0) AS value,
                    COUNT(p.id) AS sessions FROM users u JOIN practice_sessions p ON p.user_id = u.id
                    WHERE (? IS NULL OR p.created_at >= ?) GROUP BY u.id ORDER BY value DESC, sessions DESC LIMIT 30""",
                 (cutoff, cutoff),
@@ -325,7 +346,7 @@ def leaderboard(metric: Literal["wpm", "accuracy", "xp"] = "wpm", period: Litera
         else:
             operation = "MAX(p.wpm)" if metric == "wpm" else "AVG(p.accuracy)"
             rows = db.execute(
-                f"""SELECT u.id, u.name, ROUND({operation}, 1) AS value,
+                f"""SELECT u.id, u.name, u.avatar, ROUND({operation}, 1) AS value,
                     COUNT(p.id) AS sessions FROM users u JOIN practice_sessions p ON p.user_id = u.id
                     WHERE p.correct_chars >= 25 AND p.elapsed_ms >= 15000
                     AND (? IS NULL OR p.created_at >= ?) GROUP BY u.id ORDER BY value DESC, sessions DESC LIMIT 30""",

@@ -1,6 +1,6 @@
 import type { Difficulty, Language, Mode } from './data'
 
-export interface User { id: number; name: string; email: string; xp: number; level: number }
+export interface User { id: number; name: string; email: string; avatar: number; xp: number; level: number }
 export interface Session {
   id: number; mode: Mode; language: Language; difficulty: Difficulty; wpm: number; cpm: number;
   accuracy: number; errors: number; points: number; xp_earned: number; created_at: string
@@ -11,7 +11,7 @@ export interface Progress {
   mistakes: Record<string, number>
   achievements: { key: string; unlocked_at: string }[]
 }
-export interface Leaderboard { metric: 'wpm' | 'accuracy' | 'xp'; period: 'today' | 'week' | 'all'; rows: { id: number; name: string; value: number; sessions: number }[] }
+export interface Leaderboard { metric: 'wpm' | 'accuracy' | 'xp'; period: 'today' | 'week' | 'all'; rows: { id: number; name: string; avatar: number; value: number; sessions: number }[] }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`/api${path}`, {
@@ -32,6 +32,7 @@ export const api = {
   register: (name: string, email: string, password: string) => request<User>('/auth/register', { method: 'POST', body: JSON.stringify({ name, email, password }) }),
   login: (email: string, password: string) => request<User>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
   logout: () => request<void>('/auth/logout', { method: 'POST' }),
+  updateProfile: (changes: { name?: string; avatar?: number }) => request<User>('/profile', { method: 'PATCH', body: JSON.stringify(changes) }),
   progress: () => request<Progress>('/progress'),
   leaderboard: (metric: Leaderboard['metric'], period: Leaderboard['period']) => request<Leaderboard>(`/leaderboard?metric=${metric}&period=${period}`),
   save: (session: {

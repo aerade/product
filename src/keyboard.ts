@@ -32,16 +32,22 @@ const shifted: Record<string, string> = {
   '{': '[', '}': ']', '|': '\\',
 }
 
-export function keyForChar(character: string): string {
+const shiftedRu: Record<string, string> = {
+  '!': '1', '"': '2', '№': '3', ';': '4', '%': '5', ':': '6', '?': '7', '*': '8',
+  '(': '9', ')': '0', '_': '-', '+': '=', ',': '.',
+}
+
+export function keyForChar(character: string, language: Language = 'en'): string {
   if (character === ' ') return 'Space'
   if (character === '\n') return 'Enter'
+  if (language === 'ru' && shiftedRu[character]) return shiftedRu[character]
   return shifted[character] || character.toLowerCase()
 }
 
 export function fingerForChar(character: string, language: Language) {
   if (character === ' ') return 'Большой палец'
   if (character === '\n') return 'Правый мизинец'
-  const key = keyForChar(character)
+  const key = keyForChar(character, language)
   for (const row of rows[language]) {
     const column = row.indexOf(key)
     if (column !== -1) return fingerNames[fingerIndex(column, row.length)]

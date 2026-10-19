@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import {
-  Activity, ArrowDownRight, ArrowRight, Award, BarChart3, Check, CheckCircle2,
-  ChevronDown, CircleUserRound, Code2, Crown, Flame, Globe2, Keyboard, LockKeyhole,
-  LogOut, Medal, RotateCcw, Sparkles, Target, Trophy, Type, Volume2, VolumeX, X,
+  Activity, ArrowRight, Award, BarChart3, CheckCircle2,
+  ChevronDown, Code2, Crown, Flame, Keyboard, LockKeyhole,
+  LogOut, Medal, RotateCcw, Settings2, Sparkles, Target, Trophy, Type, X,
 } from 'lucide-react'
 import { api, type Leaderboard, type Progress, type Session, type User } from './api'
-import { achievementInfo, makeExercise, modeName, modes, prettyChar, type Difficulty, type Language, type Mode } from './data'
+import { achievementInfo, difficultyInfo, makeExercise, modeName, modes, prettyChar, type Difficulty, type Language, type Mode } from './data'
 import { createRun, levelForXp, metrics, multiplier, press, type Run } from './engine'
 import { fingerForChar, keyForChar, keyboardRows } from './keyboard'
+import SettingsModal from './SettingsModal'
+import { applySettings, loadSettings, saveSettings, type Settings } from './settings'
 
 type Page = 'overview' | 'practice' | 'progress' | 'leaderboard' | 'awards'
 type GuestSession = Session & { elapsed_ms: number; correct_chars: number; mistake_map: Record<string, number> }
@@ -75,14 +77,18 @@ function saveGuestRun(guest: GuestData, run: Run): { next: GuestData; result: Re
 }
 
 function Mark({ compact = false }: { compact?: boolean }) {
-  return <div className={`brand-mark ${compact ? 'brand-mark-small' : ''}`} aria-hidden="true"><span /><span /></div>
+  return <img src="/real-mark-white.svg" alt="" className={`real-mark ${compact ? 'real-mark-small' : ''}`} />
+}
+
+function Avatar({ number, size = 'normal' }: { number: number; size?: 'normal' | 'small' }) {
+  return <img className={`user-avatar ${size === 'small' ? 'user-avatar-small' : ''}`} src={`/avatars/avatar-${String(number).padStart(2, '0')}.png`} alt="" />
 }
 
 function StatCard({ label, value, suffix, icon: Icon, detail }: { label: string; value: string | number; suffix?: string; icon: typeof Activity; detail?: string }) {
   return <div className="stat-card"><div className="stat-card-top"><span>{label}</span><Icon size={17} strokeWidth={1.7} /></div><div className="stat-value">{value}<small>{suffix}</small></div>{detail && <p>{detail}</p>}</div>
 }
 
-function Navigation({ page, setPage, onAuth, user, xp }: { page: Page; setPage: (page: Page) => void; onAuth: () => void; user: User | null; xp: number }) {
+function Navigation({ page, setPage, onAuth, onSettings, user, avatar, xp }: { page: Page; setPage: (page: Page) => void; onAuth: () => void; onSettings: () => void; user: User | null; avatar: number; xp: number }) {
   const links: { id: Page; label: string; icon: typeof Keyboard }[] = [
     { id: 'overview', label: 'Главная', icon: Target },
     { id: 'practice', label: 'Тренировка', icon: Keyboard },
@@ -91,22 +97,22 @@ function Navigation({ page, setPage, onAuth, user, xp }: { page: Page; setPage: 
     { id: 'awards', label: 'Достижения', icon: Award },
   ]
   return <aside className="sidebar">
-    <div className="brand"><Mark /><div><strong>ПЕЧАТЬ<br />ГЕРОЯ</strong><span>ТИПИНГ / 2026</span></div></div>
-    <div className="sidebar-section-label">ПРОСТРАНСТВО</div>
+    <div className="brand"><img src="/real-logo-horizontal-white.svg" className="brand-logo logo-white" alt="Real" /><img src="/real-logo-horizontal.svg" className="brand-logo logo-black" alt="" /></div>
     <nav aria-label="Основная навигация" className="nav-list">
       {links.map(({ id, label, icon: Icon }) => <button key={id} type="button" className={`nav-item ${page === id ? 'active' : ''}`} onClick={() => setPage(id)}><Icon size={18} strokeWidth={1.8} /><span>{label}</span>{page === id && <span className="nav-dot" />}</button>)}
     </nav>
     <div className="sidebar-bottom">
-      <div className="level-panel"><div className="level-panel-title"><span>ТВОЙ УРОВЕНЬ</span><strong>LVL {levelForXp(xp).toString().padStart(2, '0')}</strong></div><div className="progress-track"><span style={{ width: `${(xp % 250) / 2.5}%` }} /></div><small>{xp % 250} / 250 XP до нового уровня</small></div>
-      <button type="button" className="profile-button" onClick={onAuth}><div className="avatar">{user ? user.name.slice(0, 1).toUpperCase() : <CircleUserRound size={21} />}</div><span><strong>{user ? user.name : 'Гостевой режим'}</strong><small>{user ? 'Прогресс сохранён' : 'Войти в аккаунт'}</small></span><ArrowRight size={15} /></button>
+      <div className="level-panel"><div className="level-panel-title"><span>Уровень {levelForXp(xp)}</span><strong>{xp} XP</strong></div><div className="progress-track"><span style={{ width: `${(xp % 250) / 2.5}%` }} /></div><small>{xp % 250} / 250 XP</small></div>
+      <button type="button" className="sidebar-settings" onClick={onSettings}><Settings2 size={17} /> Настройки</button>
+      <button type="button" className="profile-button" onClick={onAuth}><Avatar number={avatar} /><span><strong>{user ? user.name : 'Гость'}</strong><small>{user ? user.email : 'Войти в аккаунт'}</small></span><ArrowRight size={15} /></button>
     </div>
   </aside>
 }
 
-function KeyboardGuide({ language, nextChar }: { language: Language; nextChar: string }) {
-  const active = keyForChar(nextChar)
+function KeyboardGuide({ language, nextChar, showFinger }: { language: Language; nextChar: string; showFinger: boolean }) {
+  const active = keyForChar(nextChar, language)
   return <div className="keyboard-guide">
-    <div className="section-heading"><div><span className="eyebrow">ПОМОЩНИК</span><h3>Следующая клавиша</h3></div><div className="finger-tip"><span className="finger-dot" />{fingerForChar(nextChar, language)}</div></div>
+    <div className="section-heading"><h3>Клавиатура</h3>{showFinger && <div className="finger-tip">{fingerForChar(nextChar, language)}</div>}</div>
     <div className="keyboard-rows" aria-label={`Подсказка клавиатуры для символа ${prettyChar(nextChar)}`}>
       {keyboardRows(language).map((row, index) => <div className={`keyboard-row row-${index}`} key={index}>{row.map((key) => <span key={`${index}-${key}`} className={`keycap ${key === active ? 'keycap-active' : ''}`}>{key.toUpperCase()}</span>)}</div>)}
       <div className="keyboard-row last-row"><span className={`keycap keycap-space ${active === 'Space' ? 'keycap-active' : ''}`}>ПРОБЕЛ</span><span className={`keycap keycap-enter ${active === 'Enter' ? 'keycap-active' : ''}`}>ENTER</span></div>
@@ -135,7 +141,7 @@ function AuthModal({ onClose, onSignedIn, user, onLogout }: { onClose: () => voi
   }
 
   return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}><div className="modal auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title"><button type="button" className="icon-button modal-close" onClick={onClose} aria-label="Закрыть"><X size={19} /></button><Mark compact />
-    {user ? <><span className="eyebrow">ПРОФИЛЬ</span><h2 id="auth-title">Привет, {user.name}</h2><p className="muted">Твой прогресс сохранён в аккаунте и будет доступен при следующем входе.</p><div className="account-summary"><span>Всего опыта</span><strong>{user.xp} XP</strong></div><button type="button" className="button button-secondary full" onClick={() => { onLogout(); onClose() }}><LogOut size={17} /> Выйти из аккаунта</button></> : <><span className="eyebrow">ТВОЙ ПРОГРЕСС</span><h2 id="auth-title">{register ? 'Создать аккаунт' : 'С возвращением'}</h2><p className="muted">{register ? 'Сохраняй результаты и участвуй в рейтинге.' : 'Войди, чтобы продолжить с любого устройства.'}</p><form onSubmit={submit} className="auth-form">{register && <label>Имя<input required minLength={2} maxLength={40} value={name} onChange={(event) => setName(event.target.value)} placeholder="Как к тебе обращаться" /></label>}<label>Email<input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" /></label><label>Пароль<input required type="password" minLength={register ? 8 : 1} value={password} onChange={(event) => setPassword(event.target.value)} placeholder={register ? 'Минимум 8 символов' : 'Ваш пароль'} /></label>{error && <div className="form-error" role="alert">{error}</div>}<button type="submit" className="button button-primary full" disabled={busy}>{busy ? 'Подождите…' : register ? 'Создать аккаунт' : 'Войти'}<ArrowRight size={17} /></button></form><button type="button" className="text-button" onClick={() => { setRegister(!register); setError('') }}>{register ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Зарегистрироваться'}</button></>}
+    {user ? <><h2 id="auth-title">Профиль: {user.name}</h2><p className="muted">Результаты доступны после входа на другом устройстве.</p><div className="account-summary"><span>Всего опыта</span><strong>{user.xp} XP</strong></div><button type="button" className="button button-secondary full" onClick={() => { onLogout(); onClose() }}><LogOut size={17} /> Выйти из аккаунта</button></> : <><h2 id="auth-title">{register ? 'Создать аккаунт' : 'Вход в Real'}</h2><p className="muted">{register ? 'Для сохранения результатов и участия в рейтинге.' : 'Введите email и пароль.'}</p><form onSubmit={submit} className="auth-form">{register && <label>Имя<input required minLength={2} maxLength={40} value={name} onChange={(event) => setName(event.target.value)} placeholder="Как к тебе обращаться" /></label>}<label>Email<input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" /></label><label>Пароль<input required type="password" minLength={register ? 8 : 1} value={password} onChange={(event) => setPassword(event.target.value)} placeholder={register ? 'Минимум 8 символов' : 'Ваш пароль'} /></label>{error && <div className="form-error" role="alert">{error}</div>}<button type="submit" className="button button-primary full" disabled={busy}>{busy ? 'Подождите…' : register ? 'Создать аккаунт' : 'Войти'}<ArrowRight size={17} /></button></form><button type="button" className="text-button" onClick={() => { setRegister(!register); setError('') }}>{register ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Зарегистрироваться'}</button></>}
   </div></div>
 }
 
@@ -147,11 +153,12 @@ function chartPoints(sessions: Session[]) {
 }
 
 export default function App() {
-  const [page, setPage] = useState<Page>('overview')
-  const [mode, setMode] = useState<Mode>('words')
-  const [language, setLanguage] = useState<Language>('ru')
-  const [difficulty, setDifficulty] = useState<Difficulty>(1)
-  const [run, setRun] = useState<Run>(() => { const task = makeExercise('words', 'ru', 1); return createRun('words', 'ru', 1, task.text, task.label) })
+  const [settings, setSettings] = useState<Settings>(loadSettings)
+  const [page, setPage] = useState<Page>(settings.startPage)
+  const [mode, setMode] = useState<Mode>(settings.defaultMode)
+  const [language, setLanguage] = useState<Language>(settings.defaultMode === 'code' ? 'en' : settings.defaultLanguage)
+  const [difficulty, setDifficulty] = useState<Difficulty>(settings.defaultDifficulty)
+  const [run, setRun] = useState<Run>(() => { const lang = settings.defaultMode === 'code' ? 'en' : settings.defaultLanguage; const task = makeExercise(settings.defaultMode, lang, settings.defaultDifficulty); return createRun(settings.defaultMode, lang, settings.defaultDifficulty, task.text, task.label) })
   const [now, setNow] = useState(Date.now())
   const [user, setUser] = useState<User | null>(null)
   const [guest, setGuest] = useState<GuestData>(loadGuest)
@@ -161,16 +168,36 @@ export default function App() {
   const [boardPeriod, setBoardPeriod] = useState<Leaderboard['period']>('week')
   const [result, setResult] = useState<Result | null>(null)
   const [authOpen, setAuthOpen] = useState(false)
-  const [sound, setSound] = useState(() => localStorage.getItem('hero-sound') !== 'off')
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [guestAvatar, setGuestAvatar] = useState(() => {
+    const saved = Number(localStorage.getItem('real-guest-avatar'))
+    if (saved >= 1 && saved <= 10) return saved
+    const random = Math.floor(Math.random() * 10) + 1
+    localStorage.setItem('real-guest-avatar', String(random))
+    return random
+  })
   const [serviceOnline, setServiceOnline] = useState(true)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const textRef = useRef<HTMLDivElement>(null)
   const savedRuns = useRef(new Set<string>())
   const audioRef = useRef<AudioContext | null>(null)
   const computedProgress = user ? (serverProgress ?? guestProgress(emptyGuest)) : guestProgress(guest)
   const xp = user?.xp ?? guest.xp
+  const avatar = user?.avatar ?? guestAvatar
   const measure = metrics(run, now)
   const activeBonus = run.bonusUntil !== null && run.bonusUntil > now && !run.finishedAt
   const nextChar = run.text[run.index] || ' '
+
+  useEffect(() => { saveSettings(settings); applySettings(settings) }, [settings])
+
+  useEffect(() => {
+    if (settings.buttonSound === 'off') return
+    const handler = (event: MouseEvent) => {
+      if (event.target instanceof Element && event.target.closest('button:not(:disabled)')) playTone(settings.buttonSound === 'click' ? 600 : 410, 0.045)
+    }
+    document.addEventListener('click', handler)
+    return () => document.removeEventListener('click', handler)
+  }, [settings.buttonSound])
 
   useEffect(() => {
     api.me().then(({ user: current }) => {
@@ -184,6 +211,23 @@ export default function App() {
     const timer = window.setInterval(() => setNow(Date.now()), 100)
     return () => window.clearInterval(timer)
   }, [run.startedAt, run.finishedAt])
+
+  useEffect(() => {
+    if (page !== 'practice' || !settings.autoFocus || run.startedAt || run.finishedAt) return
+    const timer = window.setTimeout(() => inputRef.current?.focus(), 40)
+    return () => window.clearTimeout(timer)
+  }, [page, settings.autoFocus, run.id, run.startedAt, run.finishedAt])
+
+  useEffect(() => {
+    const container = textRef.current
+    const active = container?.querySelector<HTMLElement>('.current')
+    if (!container) return
+    if (run.index === 0) { container.scrollTop = 0; return }
+    if (!active) return
+    const top = active.offsetTop
+    if (top > container.scrollTop + container.clientHeight - 60) container.scrollTop = top - container.clientHeight + 70
+    else if (top < container.scrollTop + 20) container.scrollTop = top - 20
+  }, [run.id, run.index])
 
   useEffect(() => {
     if (page !== 'leaderboard') return
@@ -206,20 +250,19 @@ export default function App() {
     }
   }, [run, user, guest])
 
-  function playNote(success: boolean) {
-    if (!sound) return
+  function playTone(frequency: number, duration: number) {
     try {
       const context = audioRef.current || new AudioContext()
       audioRef.current = context
       const oscillator = context.createOscillator()
       const gain = context.createGain()
       oscillator.type = 'sine'
-      oscillator.frequency.value = success ? 520 : 180
+      oscillator.frequency.value = frequency
       gain.gain.setValueAtTime(0.025, context.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.07)
+      gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + duration)
       oscillator.connect(gain).connect(context.destination)
       oscillator.start()
-      oscillator.stop(context.currentTime + 0.07)
+      oscillator.stop(context.currentTime + duration)
     } catch { /* sound is optional */ }
   }
 
@@ -229,7 +272,8 @@ export default function App() {
     if (chars.length > 3) return // pasted text is not a typing exercise
     let next = run
     chars.forEach((character) => { next = press(next, character, Date.now()) })
-    if (next !== run && (next.lastHit === 'error' || next.combo % 10 === 0)) playNote(next.lastHit === 'correct')
+    if (settings.typingSound && next !== run && (next.lastHit === 'error' || next.combo % 10 === 0)) playTone(next.lastHit === 'correct' ? 520 : 180, 0.07)
+    if (settings.completionSound && next.finishedAt && !run.finishedAt) playTone(760, 0.18)
     setRun(next)
     setNow(Date.now())
   }
@@ -240,7 +284,7 @@ export default function App() {
     const task = makeExercise(nextMode, resolvedLanguage, nextDifficulty)
     setRun(createRun(nextMode, resolvedLanguage, nextDifficulty, task.text, task.label))
     setResult(null); setNow(Date.now()); setPage('practice')
-    window.setTimeout(() => inputRef.current?.focus(), 40)
+    if (settings.autoFocus) window.setTimeout(() => inputRef.current?.focus(), 40)
   }
 
   async function logout() {
@@ -248,39 +292,53 @@ export default function App() {
     setUser(null); setServerProgress(null)
   }
 
+  async function changeAvatar(value: number) {
+    if (user) {
+      setUser(await api.updateProfile({ avatar: value }))
+      if (page === 'leaderboard') api.leaderboard(boardMetric, boardPeriod).then(setLeaderboard).catch(() => {})
+    }
+    else { localStorage.setItem('real-guest-avatar', String(value)); setGuestAvatar(value) }
+  }
+
+  async function changeName(value: string) {
+    setUser(await api.updateProfile({ name: value }))
+    if (page === 'leaderboard') api.leaderboard(boardMetric, boardPeriod).then(setLeaderboard).catch(() => {})
+  }
+
   const navTitle: Record<Page, string> = { overview: 'Главная', practice: 'Тренировка', progress: 'Прогресс', leaderboard: 'Рейтинг', awards: 'Достижения' }
   const recent = computedProgress?.sessions || []
   const earned = new Set(computedProgress?.achievements.map((achievement) => achievement.key) || [])
 
-  return <div className="app-shell">
-    <Navigation page={page} setPage={setPage} onAuth={() => setAuthOpen(true)} user={user} xp={xp} />
+  return <div className={`app-shell ${page === 'practice' && settings.focusMode ? 'focus-mode' : ''}`} data-caret={settings.caretStyle}>
+    <Navigation page={page} setPage={setPage} onAuth={() => setAuthOpen(true)} onSettings={() => setSettingsOpen(true)} user={user} avatar={avatar} xp={xp} />
     <div className="main-area">
-      <header className="topbar"><div className="breadcrumbs"><span>ПЕЧАТЬ ГЕРОЯ</span><span className="crumb-slash">/</span><strong>{navTitle[page]}</strong></div><div className="topbar-right"><span className="live-indicator"><span />ТВОЙ ТЕМП — ТВОИ ПРАВИЛА</span><button type="button" className="account-chip" onClick={() => setAuthOpen(true)}><span>{user ? user.name.slice(0, 1).toUpperCase() : 'Г'}</span>{user ? user.name : 'Гость'}<ChevronDown size={14} /></button></div></header>
+      <header className="topbar"><div className="breadcrumbs"><img src="/real-mark-white.svg" alt="" /><strong>Real</strong><span className="crumb-slash">/</span><span>{navTitle[page]}</span></div><div className="topbar-right"><button type="button" className="icon-button top-settings" onClick={() => setSettingsOpen(true)} aria-label="Настройки"><Settings2 size={18} /></button><button type="button" className="account-chip" onClick={() => setAuthOpen(true)}><Avatar number={avatar} size="small" />{user ? user.name : 'Гость'}<ChevronDown size={14} /></button></div></header>
       <main className="content">
         {page === 'overview' && <>
-          <div className="page-intro"><div><span className="eyebrow">ТРЕНАЖЁР СЛЕПОЙ ПЕЧАТИ / ОСЕНЬ 2026</span><h1>Каждый символ<br /><em>имеет значение.</em></h1><p>Тренируй точность, набирай скорость и превращай практику в игру. Твой следующий рекорд начинается здесь.</p><div className="hero-actions"><button type="button" className="button button-primary" onClick={() => begin()}><Keyboard size={19} /> Начать тренировку <ArrowRight size={18} /></button><button type="button" className="button button-secondary" onClick={() => setPage('progress')}>Мой прогресс <ArrowDownRight size={18} /></button></div></div><div className="hero-art" aria-hidden="true"><div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" /><div className="hero-key">R<span>↗</span></div><div className="hero-art-caption">НАБИРАЙ СВОЙ<br />ТЕМП / 01</div></div></div>
-          <div className="section-heading overview-heading"><div><span className="eyebrow">СЕГОДНЯ И ВСЕГДА</span><h2>Твои показатели</h2></div><button type="button" className="link-button" onClick={() => setPage('progress')}>Вся статистика <ArrowRight size={17} /></button></div>
-          <div className="stats-grid"><StatCard label="ТРЕНИРОВОК" value={computedProgress?.summary.sessions ?? 0} icon={Activity} detail="Каждая сессия — шаг вперёд" /><StatCard label="ЛУЧШАЯ СКОРОСТЬ" value={Math.round(computedProgress?.summary.best_wpm ?? 0)} suffix="WPM" icon={Flame} detail="Личный рекорд" /><StatCard label="СРЕДНЯЯ ТОЧНОСТЬ" value={Math.round(computedProgress?.summary.avg_accuracy ?? 0)} suffix="%" icon={Target} detail="Контроль важнее спешки" /><StatCard label="ОПЫТ" value={xp} suffix="XP" icon={Sparkles} detail={`Уровень ${levelForXp(xp)}`} /></div>
-          <div className="section-heading mode-heading"><div><span className="eyebrow">ВЫБЕРИ СВОЙ ПУТЬ</span><h2>Режимы тренировки</h2></div><span className="section-subtle">04 РЕЖИМА</span></div>
-          <div className="mode-grid">{modes.map((item) => <button type="button" className="mode-card" key={item.id} onClick={() => begin(item.id, item.id === 'code' ? 'en' : language, difficulty)}><span className="mode-index">{item.icon} / 04</span><div className="mode-icon">{item.id === 'code' ? <Code2 size={26} /> : item.id === 'symbols' ? <Sparkles size={26} /> : item.id === 'sentences' ? <Type size={26} /> : <Keyboard size={26} />}</div><div><h3>{item.title}</h3><p>{item.subtitle}</p></div><ArrowRight className="mode-arrow" size={20} /></button>)}</div>
-          {!user && <div className="sync-banner"><LockKeyhole size={22} /><div><strong>Продолжай с любого устройства</strong><p>Создай аккаунт, чтобы сохранить прогресс и попасть в рейтинг.</p></div><button type="button" onClick={() => setAuthOpen(true)}>Создать аккаунт <ArrowRight size={16} /></button></div>}
+          <div className="page-intro"><div><h1>Тренировка печати</h1><p>Слова, предложения, код и символы.</p><div className="hero-actions"><button type="button" className="button button-primary" onClick={() => begin(settings.defaultMode, settings.defaultLanguage, settings.defaultDifficulty)}><Keyboard size={19} /> Начать <ArrowRight size={18} /></button><button type="button" className="button button-secondary" onClick={() => setPage('progress')}>Прогресс</button></div></div></div>
+          <div className="section-heading overview-heading"><h2>Статистика</h2><button type="button" className="link-button" onClick={() => setPage('progress')}>Подробнее <ArrowRight size={17} /></button></div>
+          <div className="stats-grid"><StatCard label="ТРЕНИРОВКИ" value={computedProgress.summary.sessions} icon={Activity} /><StatCard label="ЛУЧШАЯ СКОРОСТЬ" value={Math.round(computedProgress.summary.best_wpm)} suffix="WPM" icon={Flame} /><StatCard label="ТОЧНОСТЬ" value={Math.round(computedProgress.summary.avg_accuracy)} suffix="%" icon={Target} /><StatCard label="ОПЫТ" value={xp} suffix="XP" icon={Sparkles} /></div>
+          <div className="daily-goal">Сегодня: {recent.filter((session) => new Date(session.created_at).toDateString() === new Date().toDateString()).length} / {settings.dailyGoal} тренировок</div>
+          <div className="section-heading mode-heading"><h2>Режимы</h2></div>
+          <div className="mode-grid">{modes.map((item) => <button type="button" className="mode-card" key={item.id} onClick={() => begin(item.id, item.id === 'code' ? 'en' : language, difficulty)}><div className="mode-icon">{item.id === 'code' ? <Code2 size={26} /> : item.id === 'symbols' ? <Sparkles size={26} /> : item.id === 'sentences' ? <Type size={26} /> : <Keyboard size={26} />}</div><div><h3>{item.title}</h3><p>{item.subtitle}</p></div><ArrowRight className="mode-arrow" size={20} /></button>)}</div>
+          {!user && <div className="sync-banner"><LockKeyhole size={22} /><div><strong>Сохранение результатов</strong><p>Войдите, чтобы видеть прогресс на других устройствах.</p></div><button type="button" onClick={() => setAuthOpen(true)}>Войти <ArrowRight size={16} /></button></div>}
         </>}
 
         {page === 'practice' && <>
-          <div className="page-heading"><div><span className="eyebrow">ЗОНА ФОКУСА / 01</span><h1>Тренировка</h1><p>Смотри на текст. Клавиатуру подскажем мы.</p></div><button type="button" className="button button-secondary" onClick={() => begin()}><RotateCcw size={17} /> Новый текст</button></div>
-          <div className="practice-controls"><div className="control-group"><span className="control-label">РЕЖИМ</span><div className="segmented">{modes.map((item) => <button key={item.id} type="button" className={mode === item.id ? 'selected' : ''} onClick={() => begin(item.id, item.id === 'code' ? 'en' : language, difficulty)}>{item.title}</button>)}</div></div><div className="control-group"><span className="control-label">ЯЗЫК</span><div className="segmented"><button type="button" className={language === 'ru' ? 'selected' : ''} disabled={mode === 'code'} title={mode === 'code' ? 'Режим кода использует латинскую раскладку' : undefined} onClick={() => begin(mode, 'ru', difficulty)}>RU</button><button type="button" className={language === 'en' ? 'selected' : ''} onClick={() => begin(mode, 'en', difficulty)}>EN</button></div></div><div className="control-group"><span className="control-label">СЛОЖНОСТЬ</span><div className="segmented">{([1, 2, 3] as Difficulty[]).map((value) => <button key={value} type="button" className={difficulty === value ? 'selected' : ''} onClick={() => begin(mode, language, value)}>{value}</button>)}</div></div></div>
-          <div className="practice-grid"><div><div className="typing-card"><div className="typing-topline"><div><span className="live-indicator"><span />{run.finishedAt ? 'ЗАВЕРШЕНО' : run.startedAt ? 'СЕССИЯ ИДЁТ' : 'ГОТОВ К СТАРТУ'}</span><span className="typing-label">{run.label}</span></div><div className="typing-count">{run.index.toString().padStart(2, '0')} <span>/ {run.text.length}</span></div></div><div className="typing-progress"><span style={{ width: `${run.index / run.text.length * 100}%` }} /></div><div className={`typing-text ${run.lastHit === 'error' ? 'typing-error' : ''}`} aria-label="Текст упражнения">{Array.from(run.text).map((char, index) => <span key={index} className={index < run.index ? 'typed' : index === run.index ? 'current' : 'pending'}>{char === '\n' ? <>&#8629;<br /></> : char}</span>)}</div><div className="type-input-wrap"><Keyboard size={19} /><textarea ref={inputRef} aria-label="Поле ввода текста упражнения" value="" onChange={(event) => handleInput(event.currentTarget.value)} onPaste={(event) => event.preventDefault()} onDrop={(event) => event.preventDefault()} onKeyDown={(event) => { if (event.key === 'Tab') { event.preventDefault(); inputRef.current?.focus() } }} placeholder={run.finishedAt ? 'Упражнение завершено' : 'Нажми сюда и начинай печатать…'} rows={1} disabled={Boolean(run.finishedAt)} /><span className="input-focus-hint">{run.startedAt ? 'ПЕЧАТАЙ ДАЛЬШЕ' : 'НАЧНИ ЗДЕСЬ'}</span></div><div className="typing-foot"><span><CheckCircle2 size={15} /> Неверная клавиша не продвигает текст</span><button type="button" className="sound-button" onClick={() => { localStorage.setItem('hero-sound', sound ? 'off' : 'on'); setSound(!sound) }}>{sound ? <Volume2 size={16} /> : <VolumeX size={16} />} Звук {sound ? 'вкл.' : 'выкл.'}</button></div></div><KeyboardGuide language={language} nextChar={nextChar} /></div><div className="training-side"><div className="live-stats"><span className="eyebrow">В ПРЯМОМ ЭФИРЕ</span><h3>Твой ритм<span className="pulse-dot" /></h3><div className="live-number">{measure.wpm}<small>WPM</small></div><div className="metric-row"><span>Символов / мин</span><strong>{measure.cpm}</strong></div><div className="metric-row"><span>Точность</span><strong>{measure.accuracy}%</strong></div><div className="metric-row"><span>Ошибки</span><strong className={run.errors ? 'danger-text' : ''}>{run.errors}</strong></div><div className="metric-row"><span>Время</span><strong>{Math.floor(measure.elapsedMs / 60000).toString().padStart(2, '0')}:{Math.floor(measure.elapsedMs / 1000 % 60).toString().padStart(2, '0')}</strong></div></div><div className="combo-card"><div className="combo-header"><Flame size={20} /><span>СЕРИЯ БЕЗ ОШИБОК</span></div><strong>{run.combo}<small> COMBO</small></strong><div className="combo-bottom">МНОЖИТЕЛЬ <b>×{multiplier(run.combo)}</b></div>{activeBonus && <div className="bonus-chip"><Sparkles size={14} /> БОНУС ×2 ОЧКА</div>}</div><div className="hint-card"><span className="eyebrow">ПОДСКАЗКА</span><p>Следующий символ: <strong>{prettyChar(nextChar)}</strong></p><small>Нажимай: {fingerForChar(nextChar, language)}</small></div></div></div>
-          {run.finishedAt && <div className="result-overlay" role="dialog" aria-modal="true" aria-labelledby="result-title"><div className="result-modal"><div className="result-top"><span className="eyebrow"><Sparkles size={15} /> ТРЕНИРОВКА ЗАВЕРШЕНА</span><button type="button" className="icon-button" onClick={() => setPage('overview')} aria-label="Закрыть результат"><X size={18} /></button></div><div className="result-symbol"><Check size={35} /></div><h2 id="result-title">Отличная работа.</h2><p>Каждая строка приближает тебя к свободной печати.</p><div className="result-stats"><div><strong>{measure.wpm}</strong><span>WPM</span></div><div><strong>{measure.accuracy}%</strong><span>ТОЧНОСТЬ</span></div><div><strong>{run.points}</strong><span>ОЧКИ</span></div></div><div className="result-xp"><Sparkles size={17} /> {result ? `+${result.xp} XP` : 'Сохраняем результат…'}{result?.unlocked.length ? <span>· Новое достижение!</span> : null}</div>{result?.error && <p className="form-error">{result.error}</p>}<div className="result-actions"><button type="button" className="button button-primary" onClick={() => begin()}>Ещё раз <ArrowRight size={17} /></button><button type="button" className="button button-secondary" onClick={() => setPage('progress')}>Посмотреть прогресс</button></div></div></div>}
+          <div className="page-heading"><h1>Тренировка</h1><button type="button" className="button button-secondary" onClick={() => begin()}><RotateCcw size={17} /> Новый текст</button></div>
+          <div className="practice-controls"><div className="control-group"><span className="control-label">Режим</span><div className="segmented">{modes.map((item) => <button key={item.id} type="button" className={mode === item.id ? 'selected' : ''} onClick={() => begin(item.id, item.id === 'code' ? 'en' : language, difficulty)}>{item.title}</button>)}</div></div><div className="control-group"><span className="control-label">Язык</span><div className="segmented"><button type="button" className={language === 'ru' ? 'selected' : ''} disabled={mode === 'code'} title={mode === 'code' ? 'Код использует латинскую раскладку' : undefined} onClick={() => begin(mode, 'ru', difficulty)}>RU</button><button type="button" className={language === 'en' ? 'selected' : ''} onClick={() => begin(mode, 'en', difficulty)}>EN</button></div></div><div className="control-group"><label className="control-label" htmlFor="difficulty">Сложность</label><select id="difficulty" className="difficulty-select" value={difficulty} onChange={(event) => begin(mode, language, Number(event.target.value) as Difficulty)}>{difficultyInfo.map((item) => <option value={item.level} key={item.level}>{item.level}. {item.name}</option>)}</select></div><span className="difficulty-detail">{difficultyInfo[difficulty - 1].detail}</span></div>
+          <div className="practice-grid"><div><div className="typing-card"><div className="typing-topline"><span className="typing-label">{run.label}</span><div className="typing-count">{run.index} <span>/ {run.text.length}</span></div></div><div className="typing-progress"><span style={{ width: `${run.index / run.text.length * 100}%` }} /></div><div ref={textRef} className={`typing-text ${run.lastHit === 'error' ? 'typing-error' : ''}`} aria-label="Текст упражнения">{Array.from(run.text).map((char, index) => <span key={index} className={index < run.index ? 'typed' : index === run.index ? 'current' : 'pending'}>{char === '\n' ? <>&#8629;<br /></> : char}</span>)}</div><div className="type-input-wrap"><Keyboard size={19} /><textarea ref={inputRef} aria-label="Поле ввода текста упражнения" value="" onChange={(event) => handleInput(event.currentTarget.value)} onPaste={(event) => event.preventDefault()} onDrop={(event) => event.preventDefault()} onKeyDown={(event) => { if (event.key === 'Tab') { event.preventDefault(); inputRef.current?.focus() } }} placeholder={run.finishedAt ? 'Завершено' : 'Печатайте здесь'} rows={1} disabled={Boolean(run.finishedAt)} /></div></div>{settings.showKeyboard && <KeyboardGuide language={language} nextChar={nextChar} showFinger={settings.showFinger} />}</div><div className="training-side">{settings.showStats && <div className="live-stats"><h3>Скорость</h3><div className="live-number">{measure.wpm}<small>WPM</small></div><div className="metric-row"><span>Символов / мин</span><strong>{measure.cpm}</strong></div><div className="metric-row"><span>Точность</span><strong>{measure.accuracy}%</strong></div><div className="metric-row"><span>Ошибки</span><strong className={run.errors ? 'danger-text' : ''}>{run.errors}</strong></div><div className="metric-row"><span>Время</span><strong>{Math.floor(measure.elapsedMs / 60000).toString().padStart(2, '0')}:{Math.floor(measure.elapsedMs / 1000 % 60).toString().padStart(2, '0')}</strong></div></div>}{settings.showCombo && <div className="combo-card"><div className="combo-header"><Flame size={20} /><span>Серия</span></div><strong>{run.combo}</strong><div className="combo-bottom">Множитель <b>×{multiplier(run.combo)}</b></div>{activeBonus && <div className="bonus-chip"><Sparkles size={14} /> ×2 очка</div>}</div>}{settings.showFinger && <div className="hint-card"><p>Следующий символ: <strong>{prettyChar(nextChar)}</strong></p><small>{fingerForChar(nextChar, language)}</small></div>}</div></div>
+          {run.finishedAt && <div className="result-overlay" role="dialog" aria-modal="true" aria-labelledby="result-title"><div className="result-modal"><div className="result-top"><span>Результат</span><button type="button" className="icon-button" onClick={() => setPage('overview')} aria-label="Закрыть результат"><X size={18} /></button></div><h2 id="result-title">Тренировка завершена</h2><div className="result-stats"><div><strong>{measure.wpm}</strong><span>WPM</span></div><div><strong>{measure.accuracy}%</strong><span>Точность</span></div><div><strong>{run.points}</strong><span>Очки</span></div></div><div className="result-xp">{result ? `+${result.xp} XP` : 'Сохранение…'}{result?.unlocked.length ? <span>· Новое достижение</span> : null}</div>{result?.error && <p className="form-error">{result.error}</p>}<div className="result-actions"><button type="button" className="button button-primary" onClick={() => begin()}>Повторить</button><button type="button" className="button button-secondary" onClick={() => setPage('progress')}>Прогресс</button></div></div></div>}
         </>}
 
-        {page === 'progress' && <><div className="page-heading"><div><span className="eyebrow">РАСТИ КАЖДЫЙ ДЕНЬ / 02</span><h1>Прогресс</h1><p>Посмотри, как меняется твой темп.</p></div><button type="button" className="button button-primary" onClick={() => begin()}><Keyboard size={17} /> Тренироваться</button></div><div className="stats-grid"><StatCard label="СЕССИЙ" value={computedProgress.summary.sessions} icon={Activity} /><StatCard label="ВРЕМЯ В ПРАКТИКЕ" value={Math.round(computedProgress.summary.total_ms / 60000)} suffix="МИН" icon={Target} /><StatCard label="ЛУЧШИЙ РЕЗУЛЬТАТ" value={Math.round(computedProgress.summary.best_wpm)} suffix="WPM" icon={Flame} /><StatCard label="НАПЕЧАТАНО" value={computedProgress.summary.total_chars} icon={Type} /></div><div className="progress-layout"><div className="panel chart-panel"><div className="section-heading"><div><span className="eyebrow">ДИНАМИКА</span><h2>Скорость печати</h2></div><span className="chart-unit">WPM / ПОСЛЕДНИЕ 10 СЕССИЙ</span></div>{recent.length ? <div className="chart"><div className="chart-grid"><span>100</span><span>75</span><span>50</span><span>25</span></div><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="График скорости"><polyline points={chartPoints(recent)} fill="none" stroke="currentColor" strokeWidth="1.7" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" /></svg></div> : <div className="empty-chart"><BarChart3 size={32} /><strong>Первый график ждёт тебя</strong><p>Заверши тренировку, чтобы увидеть динамику.</p></div>}</div><div className="panel weak-panel"><span className="eyebrow">ЗОНА РОСТА</span><h2>Сложные символы</h2><p>Обрати внимание на эти клавиши в следующей тренировке.</p>{Object.entries(computedProgress.mistakes).length ? <div className="weak-list">{Object.entries(computedProgress.mistakes).map(([char, count]) => <div key={char}><span className="weak-char">{prettyChar(char)}</span><div className="weak-track"><span style={{ width: `${Math.min(100, count / Math.max(...Object.values(computedProgress.mistakes)) * 100)}%` }} /></div><strong>{count}</strong></div>)}</div> : <div className="empty-weak">Пока нет ошибок. Так держать!</div>}</div></div><div className="section-heading history-heading"><div><span className="eyebrow">ИСТОРИЯ</span><h2>Последние тренировки</h2></div><span className="section-subtle">{recent.length} ЗАПИСЕЙ</span></div><div className="history-list">{recent.length ? recent.slice(0, 8).map((session) => <div className="history-row" key={session.id}><div className="history-mode">{session.mode === 'code' ? <Code2 size={18} /> : <Keyboard size={18} />}</div><div className="history-name"><strong>{modeName[session.mode]}</strong><small>{new Date(session.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })} · {session.language.toUpperCase()}</small></div><div className="history-metrics"><span><b>{Math.round(session.wpm)}</b> WPM</span><span><b>{Math.round(session.accuracy)}%</b> точность</span><strong>+{session.xp_earned} XP</strong></div></div>) : <div className="empty-list">Тренировок ещё нет. Начни с короткой серии слов.</div>}</div></>}
+        {page === 'progress' && <><div className="page-heading"><div><h1>Прогресс</h1></div><button type="button" className="button button-primary" onClick={() => begin()}><Keyboard size={17} /> Тренироваться</button></div><div className="stats-grid"><StatCard label="СЕССИЙ" value={computedProgress.summary.sessions} icon={Activity} /><StatCard label="ВРЕМЯ В ПРАКТИКЕ" value={Math.round(computedProgress.summary.total_ms / 60000)} suffix="МИН" icon={Target} /><StatCard label="ЛУЧШИЙ РЕЗУЛЬТАТ" value={Math.round(computedProgress.summary.best_wpm)} suffix="WPM" icon={Flame} /><StatCard label="НАПЕЧАТАНО" value={computedProgress.summary.total_chars} icon={Type} /></div><div className="progress-layout"><div className="panel chart-panel"><div className="section-heading"><div><h2>Скорость печати</h2></div><span className="chart-unit">WPM / ПОСЛЕДНИЕ 10 СЕССИЙ</span></div>{recent.length ? <div className="chart"><div className="chart-grid"><span>100</span><span>75</span><span>50</span><span>25</span></div><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="График скорости"><polyline points={chartPoints(recent)} fill="none" stroke="currentColor" strokeWidth="1.7" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" /></svg></div> : <div className="empty-chart"><BarChart3 size={32} /><strong>Нет данных</strong><p>График появится после первой тренировки.</p></div>}</div><div className="panel weak-panel"><h2>Сложные символы</h2><p>Чаще всего ошибки возникают на этих символах.</p>{Object.entries(computedProgress.mistakes).length ? <div className="weak-list">{Object.entries(computedProgress.mistakes).map(([char, count]) => <div key={char}><span className="weak-char">{prettyChar(char)}</span><div className="weak-track"><span style={{ width: `${Math.min(100, count / Math.max(...Object.values(computedProgress.mistakes)) * 100)}%` }} /></div><strong>{count}</strong></div>)}</div> : <div className="empty-weak">Ошибок пока нет.</div>}</div></div><div className="section-heading history-heading"><div><h2>Последние тренировки</h2></div><span className="section-subtle">{recent.length} ЗАПИСЕЙ</span></div><div className="history-list">{recent.length ? recent.slice(0, 8).map((session) => <div className="history-row" key={session.id}><div className="history-mode">{session.mode === 'code' ? <Code2 size={18} /> : <Keyboard size={18} />}</div><div className="history-name"><strong>{modeName[session.mode]}</strong><small>{new Date(session.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })} · {session.language.toUpperCase()}</small></div><div className="history-metrics"><span><b>{Math.round(session.wpm)}</b> WPM</span><span><b>{Math.round(session.accuracy)}%</b> точность</span><strong>+{session.xp_earned} XP</strong></div></div>) : <div className="empty-list">Тренировок ещё нет. Начни с короткой серии слов.</div>}</div></>}
 
-        {page === 'leaderboard' && <><div className="page-heading"><div><span className="eyebrow">ЛУЧШИЕ ИЗ ЛУЧШИХ / 03</span><h1>Рейтинг</h1><p>Сравни свой результат с другими героями печати.</p></div><div className="leaderboard-icon"><Trophy size={28} /></div></div><div className="board-controls"><div className="segmented">{([['wpm', 'Скорость'], ['accuracy', 'Точность'], ['xp', 'Опыт']] as const).map(([value, label]) => <button key={value} type="button" className={boardMetric === value ? 'selected' : ''} onClick={() => setBoardMetric(value)}>{label}</button>)}</div><div className="segmented">{([['today', 'Сегодня'], ['week', 'Неделя'], ['all', 'Всё время']] as const).map(([value, label]) => <button key={value} type="button" className={boardPeriod === value ? 'selected' : ''} onClick={() => setBoardPeriod(value)}>{label}</button>)}</div></div><div className="board-panel"><div className="board-header"><span>МЕСТО / УЧАСТНИК</span><span>{boardMetric === 'wpm' ? 'СКОРОСТЬ' : boardMetric === 'accuracy' ? 'ТОЧНОСТЬ' : 'ОПЫТ'}</span></div>{leaderboard?.rows.length ? leaderboard.rows.map((entry, index) => <div className={`board-row ${entry.id === user?.id ? 'board-me' : ''}`} key={entry.id}><div className="board-person"><span className={`rank rank-${index + 1}`}>{index === 0 ? <Crown size={20} /> : (index + 1).toString().padStart(2, '0')}</span><span className="board-avatar">{entry.name.slice(0, 1).toUpperCase()}</span><span><strong>{entry.name}{entry.id === user?.id ? ' · ты' : ''}</strong><small>{entry.sessions} тренировок</small></span></div><strong className="board-score">{boardMetric === 'accuracy' ? `${Math.round(entry.value)}%` : Math.round(entry.value)} <small>{boardMetric === 'wpm' ? 'WPM' : boardMetric === 'xp' ? 'XP' : ''}</small></strong></div>) : <div className="board-empty"><Medal size={36} /><h3>{serviceOnline ? 'Рейтинг пока пуст' : 'Рейтинг сейчас недоступен'}</h3><p>{serviceOnline ? 'Заверши тренировку в аккаунте и займи первое место.' : 'Для общего рейтинга нужно запустить API.'}</p><button type="button" className="button button-primary" onClick={() => user ? begin() : setAuthOpen(true)}>{user ? 'Начать тренировку' : 'Создать аккаунт'} <ArrowRight size={16} /></button></div>}</div><div className="board-note"><Globe2 size={17} /> В рейтинг попадают тренировки от 25 символов и 15 секунд. Периоды считаются по UTC.</div></>}
+        {page === 'leaderboard' && <><div className="page-heading"><div><h1>Рейтинг</h1></div></div><div className="board-controls"><div className="segmented">{([['wpm', 'Скорость'], ['accuracy', 'Точность'], ['xp', 'Опыт']] as const).map(([value, label]) => <button key={value} type="button" className={boardMetric === value ? 'selected' : ''} onClick={() => setBoardMetric(value)}>{label}</button>)}</div><div className="segmented">{([['today', 'Сегодня'], ['week', 'Неделя'], ['all', 'Всё время']] as const).map(([value, label]) => <button key={value} type="button" className={boardPeriod === value ? 'selected' : ''} onClick={() => setBoardPeriod(value)}>{label}</button>)}</div></div><div className="board-panel"><div className="board-header"><span>МЕСТО / УЧАСТНИК</span><span>{boardMetric === 'wpm' ? 'СКОРОСТЬ' : boardMetric === 'accuracy' ? 'ТОЧНОСТЬ' : 'ОПЫТ'}</span></div>{leaderboard?.rows.length ? leaderboard.rows.map((entry, index) => <div className={`board-row ${entry.id === user?.id ? 'board-me' : ''}`} key={entry.id}><div className="board-person"><span className={`rank rank-${index + 1}`}>{index === 0 ? <Crown size={20} /> : (index + 1).toString().padStart(2, '0')}</span><span className="board-avatar"><Avatar number={entry.avatar || 1} size="small" /></span><span><strong>{entry.name}{entry.id === user?.id ? ' · ты' : ''}</strong><small>{entry.sessions} тренировок</small></span></div><strong className="board-score">{boardMetric === 'accuracy' ? `${Math.round(entry.value)}%` : Math.round(entry.value)} <small>{boardMetric === 'wpm' ? 'WPM' : boardMetric === 'xp' ? 'XP' : ''}</small></strong></div>) : <div className="board-empty"><Medal size={36} /><h3>{serviceOnline ? 'Рейтинг пока пуст' : 'Рейтинг сейчас недоступен'}</h3><p>{serviceOnline ? 'Завершите тренировку в аккаунте.' : 'Для общего рейтинга нужно запустить API.'}</p><button type="button" className="button button-primary" onClick={() => user ? begin() : setAuthOpen(true)}>{user ? 'Начать тренировку' : 'Создать аккаунт'} <ArrowRight size={16} /></button></div>}</div><div className="board-note">Для рейтинга нужны 25 символов и 15 секунд.</div></>}
 
-        {page === 'awards' && <><div className="page-heading"><div><span className="eyebrow">МАЛЕНЬКИЕ ПОБЕДЫ / 04</span><h1>Достижения</h1><p>Каждый знак на этой странице — результат практики.</p></div><div className="awards-count"><Award size={22} /><strong>{earned.size} / {achievementInfo.length}</strong><span>ОТКРЫТО</span></div></div><div className="awards-grid">{achievementInfo.map((achievement) => { const unlocked = earned.has(achievement.key); return <div className={`award-card ${unlocked ? 'unlocked' : ''}`} key={achievement.key}><div className="award-top"><span>{achievement.mark} / 06</span>{unlocked ? <CheckCircle2 size={18} /> : <LockKeyhole size={16} />}</div><div className="award-mark"><Award size={33} strokeWidth={1.35} /></div><h3>{achievement.name}</h3><p>{achievement.description}</p><span className="award-status">{unlocked ? 'ПОЛУЧЕНО' : 'ЕЩЁ ВПЕРЕДИ'}</span></div> })}</div></>}
+        {page === 'awards' && <><div className="page-heading"><div><h1>Достижения</h1></div><div className="awards-count"><Award size={22} /><strong>{earned.size} / {achievementInfo.length}</strong><span>ОТКРЫТО</span></div></div><div className="awards-grid">{achievementInfo.map((achievement) => { const unlocked = earned.has(achievement.key); return <div className={`award-card ${unlocked ? 'unlocked' : ''}`} key={achievement.key}><div className="award-top">{unlocked ? <CheckCircle2 size={18} /> : <LockKeyhole size={16} />}</div><div className="award-mark"><Award size={33} strokeWidth={1.35} /></div><h3>{achievement.name}</h3><p>{achievement.description}</p><span className="award-status">{unlocked ? 'ПОЛУЧЕНО' : 'Не получено'}</span></div> })}</div></>}
       </main>
-      <footer className="footer"><span>ПЕЧАТЬ ГЕРОЯ © 2026</span><span>ТОЧНОСТЬ → СКОРОСТЬ → МАСТЕРСТВО</span></footer>
     </div>
     {authOpen && <AuthModal onClose={() => setAuthOpen(false)} onSignedIn={(signedIn) => { setUser(signedIn); api.progress().then(setServerProgress).catch(() => {}) }} user={user} onLogout={logout} />}
+    {settingsOpen && <SettingsModal settings={settings} onChange={setSettings} onClose={() => setSettingsOpen(false)} user={user} avatar={avatar} onAvatar={changeAvatar} onName={changeName} onAuth={() => { setSettingsOpen(false); setAuthOpen(true) }} />}
   </div>
 }
