@@ -46,6 +46,7 @@
 }
 
 .leaderboard-page .board-panel {
+  box-sizing: border-box;
   position: relative;
   isolation: isolate;
   display: flex;
@@ -97,6 +98,15 @@
   font: 7px KeyflowPixel, monospace;
 }
 
+.leaderboard-page .board-person .bot-label {
+  display: inline-block;
+  margin: 0 0 0 7px;
+  color: #8daab9;
+  font: 7px KeyflowPixel, monospace;
+  opacity: .7;
+  vertical-align: 1px;
+}
+
 .leaderboard-page .board-list {
   flex: 1;
   min-height: 0;
@@ -141,6 +151,7 @@
 
 .leaderboard-page .board-note {
   margin-top: 11px;
+  margin-left: 18px;
 }
 
 @media (max-width: 650px) {
