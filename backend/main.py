@@ -25,7 +25,7 @@ DIST = ROOT / "dist"
 COOKIE = "hero_session"
 SESSION_DAYS = 30
 
-app = FastAPI(title="Real API", version="0.2.0")
+app = FastAPI(title="Keyflow API", version="0.3.0")
 
 
 @contextmanager
@@ -243,31 +243,64 @@ def update_profile(body: ProfileBody, user: Annotated[dict, Depends(require_user
 
 ACHIEVEMENTS = {
     "first": "Первый шаг",
-    "clean": "Безупречно",
-    "speed": "Скоростной набор",
-    "streak": "Стальной палец",
-    "thousand": "Тысяча символов",
-    "regular": "Привычка",
+    "five": "Вошёл во вкус",
+    "clean": "Чистая строка",
+    "thousand": "Тысяча знаков",
+    "regular": "Ритм",
+    "speed": "Быстрые пальцы",
+    "streak": "Серия без ошибок",
+    "polyglot": "Два языка",
+    "all_modes": "Все режимы",
+    "precision": "Почти идеально",
+    "speed300": "На ускорении",
+    "ten_thousand": "Большая дистанция",
+    "week": "Неделя практики",
+    "expert": "Восьмой уровень",
 }
 
 
-def unlock_achievements(db: sqlite3.Connection, user_id: int, body: PracticeBody, cpm: float, accuracy: float) -> list[str]:
-    rows = db.execute("SELECT correct_chars, created_at FROM practice_sessions WHERE user_id = ?", (user_id,)).fetchall()
+def unlock_achievements(db: sqlite3.Connection, user_id: int) -> list[str]:
+    rows = db.execute(
+        """SELECT mode, language, difficulty, correct_chars, errors, cpm, accuracy, created_at
+           FROM practice_sessions WHERE user_id = ?""", (user_id,)
+    ).fetchall()
+    if not rows:
+        return []
     lifetime = sum(row["correct_chars"] for row in rows)
     days = {row["created_at"][:10] for row in rows}
+    modes = {row["mode"] for row in rows}
+    languages = {row["language"] for row in rows}
     candidates = {"first"}
-    if body.errors == 0 and body.correct_chars >= 25:
+    if len(rows) >= 5:
+        candidates.add("five")
+    if any(row["errors"] == 0 and row["correct_chars"] >= 25 for row in rows):
         candidates.add("clean")
-    if cpm >= 200 and body.correct_chars >= 25:
-        candidates.add("speed")
-    if body.errors == 0 and body.correct_chars >= 100:
-        candidates.add("streak")
     if lifetime >= 1000:
         candidates.add("thousand")
     if len(days) >= 3:
         candidates.add("regular")
+    if any(row["cpm"] >= 200 and row["correct_chars"] >= 25 for row in rows):
+        candidates.add("speed")
+    if any(row["errors"] == 0 and row["correct_chars"] >= 100 for row in rows):
+        candidates.add("streak")
+    if len(languages) >= 2:
+        candidates.add("polyglot")
+    if len(modes) >= 4:
+        candidates.add("all_modes")
+    if any(row["accuracy"] >= 98 and row["correct_chars"] >= 100 for row in rows):
+        candidates.add("precision")
+    if any(row["cpm"] >= 300 and row["correct_chars"] >= 60 for row in rows):
+        candidates.add("speed300")
+    if lifetime >= 10_000:
+        candidates.add("ten_thousand")
+    if len(days) >= 7:
+        candidates.add("week")
+    if any(row["difficulty"] == 8 and row["errors"] == 0 and row["correct_chars"] >= 200 for row in rows):
+        candidates.add("expert")
     unlocked = []
-    for key in candidates:
+    for key in ACHIEVEMENTS:
+        if key not in candidates:
+            continue
         result = db.execute(
             "INSERT OR IGNORE INTO achievements(user_id, key, unlocked_at) VALUES (?, ?, ?)",
             (user_id, key, utc_now()),
@@ -298,7 +331,7 @@ def save_practice(body: PracticeBody, user: Annotated[dict, Depends(require_user
              json.dumps(clean_map, ensure_ascii=False), utc_now()),
         )
         db.execute("UPDATE users SET xp = xp + ? WHERE id = ?", (xp, user["id"]))
-        unlocked = unlock_achievements(db, user["id"], body, cpm, accuracy)
+        unlocked = unlock_achievements(db, user["id"])
         row = db.execute("SELECT * FROM users WHERE id = ?", (user["id"],)).fetchone()
     return {"xp_earned": xp, "user": public_user(row), "unlocked": unlocked, "wpm": wpm, "cpm": cpm, "accuracy": accuracy}
 
@@ -306,6 +339,7 @@ def save_practice(body: PracticeBody, user: Annotated[dict, Depends(require_user
 @app.get("/api/progress")
 def progress(user: Annotated[dict, Depends(require_user)]):
     with database() as db:
+        unlock_achievements(db, user["id"])
         rows = db.execute("SELECT * FROM practice_sessions WHERE user_id = ? ORDER BY created_at DESC LIMIT 60", (user["id"],)).fetchall()
         aggregate = db.execute(
             """SELECT COUNT(*) AS sessions, COALESCE(SUM(elapsed_ms), 0) AS total_ms,

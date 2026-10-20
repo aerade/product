@@ -83,13 +83,26 @@ export function makeExercise(mode: Mode, language: Language, difficulty: Difficu
   return { text, label: 'Символы' }
 }
 
-export const achievementInfo = [
-  { key: 'first', name: 'Первая тренировка', description: 'Завершить тренировку', mark: '01' },
-  { key: 'clean', name: 'Без ошибок', description: '25 символов без ошибки', mark: '02' },
-  { key: 'speed', name: '200 CPM', description: 'Достичь 200 символов в минуту', mark: '03' },
-  { key: 'streak', name: '100 без ошибок', description: '100 символов без ошибки', mark: '04' },
-  { key: 'thousand', name: '1000 символов', description: 'Напечатать 1000 символов', mark: '05' },
-  { key: 'regular', name: 'Три дня', description: 'Заниматься в 3 разных дня', mark: '06' },
+export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
+export const rarityNames: Record<Rarity, string> = {
+  common: 'Обычное', uncommon: 'Необычное', rare: 'Редкое', epic: 'Эпическое', legendary: 'Легендарное',
+}
+
+export const achievementInfo: { key: string; name: string; description: string; rarity: Rarity }[] = [
+  { key: 'first', name: 'Первый шаг', description: 'Завершить первую тренировку', rarity: 'common' },
+  { key: 'five', name: 'Вошёл во вкус', description: 'Завершить 5 тренировок', rarity: 'common' },
+  { key: 'clean', name: 'Чистая строка', description: '25 символов без ошибки', rarity: 'uncommon' },
+  { key: 'thousand', name: 'Тысяча знаков', description: 'Напечатать 1 000 символов', rarity: 'uncommon' },
+  { key: 'regular', name: 'Ритм', description: 'Заниматься в 3 разных дня', rarity: 'uncommon' },
+  { key: 'speed', name: 'Быстрые пальцы', description: 'Достичь 200 символов в минуту', rarity: 'rare' },
+  { key: 'streak', name: 'Серия без ошибок', description: '100 символов без ошибки', rarity: 'rare' },
+  { key: 'polyglot', name: 'Два языка', description: 'Завершить тренировку на русском и английском', rarity: 'rare' },
+  { key: 'all_modes', name: 'Все режимы', description: 'Завершить каждый из четырёх режимов', rarity: 'rare' },
+  { key: 'precision', name: 'Почти идеально', description: 'Точность от 98% на 100 символах', rarity: 'epic' },
+  { key: 'speed300', name: 'На ускорении', description: 'Достичь 300 символов в минуту', rarity: 'epic' },
+  { key: 'ten_thousand', name: 'Большая дистанция', description: 'Напечатать 10 000 символов', rarity: 'epic' },
+  { key: 'week', name: 'Неделя практики', description: 'Заниматься в 7 разных дней', rarity: 'legendary' },
+  { key: 'expert', name: 'Восьмой уровень', description: 'Пройти сложность 8 без ошибки, набрав 200 символов', rarity: 'legendary' },
 ]
 
 export const modeName: Record<Mode, string> = { words: 'Слова', sentences: 'Предложения', code: 'Код', symbols: 'Символы' }

@@ -28,6 +28,16 @@ function AvatarGrid({ selected, onSelect }: { selected: number; onSelect: (avata
   return <div className="avatar-grid">{Array.from({ length: 10 }, (_, index) => index + 1).map((avatar) => <button type="button" key={avatar} className={`avatar-option ${selected === avatar ? 'selected' : ''}`} onClick={() => onSelect(avatar)} aria-label={`Аватар ${avatar}`} aria-pressed={selected === avatar}><img src={`/avatars/avatar-${String(avatar).padStart(2, '0')}.png`} alt="" loading="lazy" />{selected === avatar && <Check size={15} />}</button>)}</div>
 }
 
+function ThemeCard({ theme, selected, onSelect }: { theme: (typeof themes)[number]; selected: boolean; onSelect: () => void }) {
+  return <button type="button" className={`theme-card ${selected ? 'selected' : ''}`} onClick={onSelect} aria-pressed={selected}>
+    <span className="theme-preview" style={{ backgroundColor: theme.surface, color: theme.ink }}>
+      <span className="theme-preview-rail"><i /><i /><i /></span>
+      <span className="theme-preview-page"><i className="theme-preview-title" style={{ backgroundColor: theme.ink }} /><i className="theme-preview-action" style={{ backgroundColor: theme.swatch }} /><span><i /><i /></span></span>
+    </span>
+    <span className="theme-card-caption"><i style={{ backgroundColor: theme.swatch }} />{theme.name}{selected && <Check size={15} />}</span>
+  </button>
+}
+
 export default function SettingsModal({ settings, onChange, onClose, user, avatar, onAvatar, onName, onAuth }: Props) {
   const [section, setSection] = useState<Section>('appearance')
   const [name, setName] = useState(user?.name ?? '')
@@ -60,7 +70,8 @@ export default function SettingsModal({ settings, onChange, onClose, user, avata
       </nav><div className="settings-content">
         {section === 'appearance' && <>
           <h3>Внешний вид</h3>
-          <div className="setting-block"><h4>Тема</h4><div className="theme-grid">{themes.map((theme) => <button key={theme.id} type="button" className={`theme-choice ${settings.theme === theme.id ? 'selected' : ''}`} onClick={() => update('theme', theme.id)}><span className="theme-swatch" style={{ backgroundColor: theme.swatch }} /><span>{theme.name}</span>{settings.theme === theme.id && <Check size={14} />}</button>)}</div>
+          <div className="setting-block theme-picker"><h4>Тема</h4><p className="theme-picker-hint">Выберите оформление по миниатюре. Цвета применяются сразу.</p>
+            {(['neutral', 'color', 'custom'] as const).map((group) => <div className="theme-group" key={group}><h5>{group === 'neutral' ? 'Базовые' : group === 'color' ? 'Цветные' : 'Своя палитра'}</h5><div className="theme-grid">{themes.filter((theme) => theme.group === group).map((theme) => <ThemeCard key={theme.id} theme={theme} selected={settings.theme === theme.id} onSelect={() => update('theme', theme.id)} />)}</div></div>)}
             {settings.theme === 'custom' && <div className="custom-color-grid">{([['background', 'Фон'], ['surface', 'Карточки'], ['accent', 'Акцент'], ['text', 'Текст'], ['border', 'Рамки']] as const).map(([key, label]) => <label key={key}>{label}<input type="color" value={settings.custom[key]} onChange={(event) => update('custom', { ...settings.custom, [key]: event.target.value })} /></label>)}</div>}
           </div>
           <div className="setting-block"><h4>Интерфейс</h4>
@@ -77,9 +88,15 @@ export default function SettingsModal({ settings, onChange, onClose, user, avata
           </div>
           <div className="setting-block"><h4>Движение и звук</h4>
             <Row label="Анимации"><Switch label="Анимации" value={settings.animations} onChange={(value) => update('animations', value)} /></Row>
+            <Row label="Визуальные эффекты"><select value={settings.visualIntensity} onChange={(event) => update('visualIntensity', event.target.value as Settings['visualIntensity'])}><option value="off">Выкл.</option><option value="subtle">Умеренные</option><option value="full">Яркие</option></select></Row>
+            <Row label="Подсветка серии"><Switch label="Подсветка серии" value={settings.comboPulse} onChange={(value) => update('comboPulse', value)} /></Row>
+            <Row label="Эффект завершения"><Switch label="Эффект завершения" value={settings.completionBurst} onChange={(value) => update('completionBurst', value)} /></Row>
             <Row label="Стиль анимации"><select disabled={!settings.animations} value={settings.animationStyle} onChange={(event) => update('animationStyle', event.target.value as Settings['animationStyle'])}><option value="smooth">Плавный</option><option value="spring">Пружина</option><option value="slide">Сдвиг</option><option value="snappy">Быстрый</option><option value="minimal">Минимальный</option></select></Row>
             <Row label="Скорость"><input aria-label="Скорость анимации" disabled={!settings.animations} type="range" min="0.5" max="2" step="0.1" value={settings.animationSpeed} onChange={(event) => update('animationSpeed', Number(event.target.value))} /><span>{settings.animationSpeed.toFixed(1)}×</span></Row>
             <Row label="Звук кнопок"><select value={settings.buttonSound} onChange={(event) => update('buttonSound', event.target.value as Settings['buttonSound'])}><option value="off">Выкл.</option><option value="soft">Мягкий</option><option value="click">Щелчок</option></select></Row>
+            <Row label="Звуковой набор"><select value={settings.soundPack} onChange={(event) => update('soundPack', event.target.value as Settings['soundPack'])}><option value="soft">Мягкий</option><option value="arcade">Аркада</option><option value="synth">Синтезатор</option></select></Row>
+            <Row label="Громкость"><input aria-label="Громкость" type="range" min="0" max="100" value={settings.soundVolume} onChange={(event) => update('soundVolume', Number(event.target.value))} /><span>{settings.soundVolume}%</span></Row>
+            <Row label="Звук достижений"><Switch label="Звук достижений" value={settings.achievementSound} onChange={(value) => update('achievementSound', value)} /></Row>
           </div>
         </>}
         {section === 'practice' && <>
@@ -100,6 +117,7 @@ export default function SettingsModal({ settings, onChange, onClose, user, avata
             <Row label="Размер текста"><input aria-label="Размер текста" type="range" min="16" max="34" value={settings.textSize} onChange={(event) => update('textSize', Number(event.target.value))} /><span>{settings.textSize}px</span></Row>
             <Row label="Текущий символ"><select value={settings.caretStyle} onChange={(event) => update('caretStyle', event.target.value as Settings['caretStyle'])}><option value="block">Заливка</option><option value="underline">Подчёркивание</option><option value="outline">Рамка</option></select></Row>
             <Row label="Фокус на поле ввода"><Switch label="Фокус на поле ввода" value={settings.autoFocus} onChange={(value) => update('autoFocus', value)} /></Row>
+            <Row label="Звук каждой клавиши"><Switch label="Звук каждой клавиши" value={settings.keySound} onChange={(value) => update('keySound', value)} /></Row>
             <Row label="Сигналы набора" hint="Ошибки и серия из 10 символов"><Switch label="Сигналы набора" value={settings.typingSound} onChange={(value) => update('typingSound', value)} /></Row>
             <Row label="Звук завершения"><Switch label="Звук завершения" value={settings.completionSound} onChange={(value) => update('completionSound', value)} /></Row>
           </div>
