@@ -391,20 +391,20 @@ export default function App() {
           <div className="board-panel">
             <div className="board-header">
               <span>МЕСТО / УЧАСТНИК</span>
-              <span className="board-header-meta">{!liveBoard && <small>ТЕСТОВЫЕ ДАННЫЕ</small>}<span>{boardMetric === 'wpm' ? 'СКОРОСТЬ' : boardMetric === 'accuracy' ? 'ТОЧНОСТЬ' : 'ОПЫТ'}</span></span>
+              <span className="board-header-meta"><span>{boardMetric === 'wpm' ? 'СКОРОСТЬ' : boardMetric === 'accuracy' ? 'ТОЧНОСТЬ' : 'ОПЫТ'}</span></span>
             </div>
             <div className="board-list" role="region" aria-label="Участники рейтинга" tabIndex={0}>
               {boardRows.map((entry, index) => <div className={`board-row ${entry.id === user?.id ? 'board-me' : ''}`} key={entry.id}>
                 <div className="board-person">
                   <span className={`rank rank-${index + 1}`}>{index === 0 ? <img src="/leaderboard/ui/crown.png" alt="1 место" /> : (index + 1).toString().padStart(2, '0')}</span>
                   <span className="board-avatar"><Avatar number={entry.avatar || 1} size="small" /></span>
-                  <span><strong>{entry.name}{entry.id === user?.id ? ' · ты' : ''}</strong><small>{entry.sessions} тренировок</small></span>
+                  <span><strong>{entry.name}{entry.id === user?.id ? ' · ты' : ''}{!liveBoard && <small className="bot-label">бот</small>}</strong><small>{entry.sessions} тренировок</small></span>
                 </div>
                 <strong className="board-score">{boardMetric === 'accuracy' ? `${Math.round(entry.value * 10) / 10}%` : Math.round(entry.value)} <small>{boardMetric === 'wpm' ? 'WPM' : boardMetric === 'xp' ? 'XP' : ''}</small></strong>
               </div>)}
             </div>
           </div>
-          <div className="board-note">Для рейтинга нужны 25 символов и 15 секунд.</div>
+          <div className="board-note">* Для рейтинга нужны 25 символов и 15 секунд.</div>
         </section>}
 
         {page === 'awards' && <>
