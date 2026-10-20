@@ -1,0 +1,177 @@
+/* The generated frames keep their full edges inside each element. */
+.leaderboard-page .page-heading {
+  margin-bottom: 18px;
+}
+
+.leaderboard-page .board-controls {
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 17px;
+}
+
+.leaderboard-page .board-controls .segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.leaderboard-page .board-controls .segmented button {
+  min-width: 98px;
+  height: 48px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 0;
+  background: url('/leaderboard/ui/tab-frame.png') 50% 40% / 110% 154% no-repeat !important;
+  box-shadow: none;
+  color: #c6d8e9;
+  font: 8px KeyflowPixel, monospace;
+  image-rendering: pixelated;
+  text-shadow: 1px 1px #061322;
+  transition: filter .15s, transform .15s;
+}
+
+.leaderboard-page .board-controls .segmented button:hover {
+  color: #fff;
+  filter: brightness(1.2);
+}
+
+.leaderboard-page .board-controls .segmented button.selected {
+  color: #fff;
+  filter: brightness(1.45) saturate(1.12);
+}
+
+.leaderboard-page .board-panel {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  height: min(72vh, 620px);
+  min-height: 470px;
+  padding: 46px 47px 35px;
+  overflow: visible;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.leaderboard-page .board-panel::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+  background: url('/leaderboard/ui/panel-frame.png') 50% 42% / 104% 170% no-repeat;
+  image-rendering: pixelated;
+}
+
+.leaderboard-page .board-header {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  min-height: 43px;
+  margin: 0 5px;
+  padding: 10px 18px 12px;
+  border-bottom: 1px solid #6d91ae66;
+  background: transparent;
+  color: #b9cede;
+  font-size: 8px;
+}
+
+.leaderboard-page .board-header-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 26px;
+  white-space: nowrap;
+}
+
+.leaderboard-page .board-header-meta small {
+  color: #8daab9;
+  font: 7px KeyflowPixel, monospace;
+}
+
+.leaderboard-page .board-list {
+  flex: 1;
+  min-height: 0;
+  margin: 0 5px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.leaderboard-page .board-row {
+  min-height: 67px;
+  margin: 0;
+  padding: 10px 18px;
+  border-top: 0;
+  border-bottom: 1px solid #39546b88;
+}
+
+.leaderboard-page .board-row:last-child {
+  border-bottom: 0;
+}
+
+.leaderboard-page .board-row:hover {
+  background: #1b3146a8;
+}
+
+.leaderboard-page .board-row.board-me {
+  background: #244158a8 !important;
+}
+
+.leaderboard-page .rank {
+  display: inline-flex;
+  align-items: center;
+  width: 28px;
+}
+
+.leaderboard-page .rank img {
+  display: block;
+  width: 25px;
+  height: 25px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.leaderboard-page .board-note {
+  margin-top: 11px;
+}
+
+@media (max-width: 650px) {
+  .leaderboard-page .board-controls {
+    gap: 7px;
+  }
+
+  .leaderboard-page .board-controls .segmented button {
+    min-width: 82px;
+    height: 43px;
+    padding: 0 10px;
+    font-size: 7px;
+  }
+
+  .leaderboard-page .board-panel {
+    height: min(68vh, 580px);
+    min-height: 390px;
+    padding: 38px 28px 29px;
+  }
+
+  .leaderboard-page .board-header,
+  .leaderboard-page .board-row {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .leaderboard-page .board-header-meta {
+    gap: 8px;
+  }
+
+  .leaderboard-page .board-header-meta small {
+    display: none;
+  }
+}

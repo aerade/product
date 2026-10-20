@@ -147,3 +147,16 @@ body,.app-shell{background:var(--bg);color:var(--white)}
 
 @media(max-width:950px){.brand-logo{width:42px;object-fit:cover}.sidebar-settings{display:none}}
 @media(max-width:650px){.settings-body{display:block;overflow:auto}.settings-nav{flex-direction:row;border-right:0;border-bottom:1px solid var(--line);padding:8px}.settings-nav button{flex:1;justify-content:center;padding:9px 3px;font-size:10px}.settings-nav button svg{display:none}.settings-content{padding:18px;overflow:visible}.settings-header{padding:15px 18px}.settings-footer{padding:11px 18px}.theme-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.setting-control select{min-width:120px}.setting-row{gap:8px}.avatar-grid{gap:6px}.page-intro{padding:24px 21px}.page-intro h1{font-size:32px}.difficulty-detail{width:100%;padding:0}.typing-text{font-size:min(var(--typing-text-size,22px),6vw)}:root[data-nav-style="icons"] .app-shell{display:block}:root[data-nav-style="icons"] .nav-item span:not(.nav-dot){display:block}:root[data-nav-style="icons"] .sidebar{width:100%}.focus-mode .topbar{display:flex}.focus-mode .content{padding-top:30px}}
+
+@media(min-width:651px){
+  :root:not([data-nav-position="top"]):not([data-nav-position="bottom"]) .sidebar{
+    background-image:linear-gradient(180deg,#06101cc9,#06101cb0 55%,#06101ccc),url('/sidebar-nature.png')!important;
+    background-position:center center!important;
+    background-size:cover!important;
+    background-repeat:no-repeat!important;
+  }
+  :root[data-theme="light"]:not([data-nav-position="top"]):not([data-nav-position="bottom"]) .sidebar .nav-item,
+  :root[data-theme="light"]:not([data-nav-position="top"]):not([data-nav-position="bottom"]) .sidebar .sidebar-settings,
+  :root[data-theme="light"]:not([data-nav-position="top"]):not([data-nav-position="bottom"]) .sidebar .profile-button{color:#e8f0f5}
+  :root[data-theme="light"]:not([data-nav-position="top"]):not([data-nav-position="bottom"]) .sidebar .nav-item:is(:hover,.active){background:#172331e6;border-color:#415367;color:#fff}
+}

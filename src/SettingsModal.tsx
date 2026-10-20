@@ -25,7 +25,7 @@ function Switch({ value, onChange, label }: { value: boolean; onChange: (value: 
 }
 
 function AvatarGrid({ selected, onSelect }: { selected: number; onSelect: (avatar: number) => void }) {
-  return <div className="avatar-grid">{Array.from({ length: 10 }, (_, index) => index + 1).map((avatar) => <button type="button" key={avatar} className={`avatar-option ${selected === avatar ? 'selected' : ''}`} onClick={() => onSelect(avatar)} aria-label={`Аватар ${avatar}`} aria-pressed={selected === avatar}><img src={`/avatars/avatar-${String(avatar).padStart(2, '0')}.png`} alt="" loading="lazy" />{selected === avatar && <Check size={15} />}</button>)}</div>
+  return <div className="avatar-grid">{Array.from({ length: 10 }, (_, index) => index + 1).map((avatar) => <button type="button" key={avatar} className={`avatar-option ${selected === avatar ? 'selected' : ''}`} onClick={() => onSelect(avatar)} aria-label={`Аватар ${avatar}`} aria-pressed={selected === avatar}><img src={`/avatars/forest-${String(avatar).padStart(2, '0')}.png`} alt="" loading="lazy" />{selected === avatar && <Check size={15} />}</button>)}</div>
 }
 
 function ThemeCard({ theme, selected, onSelect }: { theme: (typeof themes)[number]; selected: boolean; onSelect: () => void }) {

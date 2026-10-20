@@ -1,0 +1,381 @@
+/* Homepage artwork is kept separate from the rest of the site's controls. */
+.page-intro.overview-hero{
+  display:flex;
+  align-items:center;
+  min-height:286px;
+  padding:42px clamp(68px,6vw,92px);
+  overflow:hidden;
+  background:transparent url('/overview/hero-framed-transparent.png') center/100% 100% no-repeat!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.page-intro.overview-hero::after{content:none}
+.overview-hero-copy{position:relative;z-index:3;max-width:560px}
+.overview-hero h1{margin:0 0 12px;color:#f0f7ff!important;text-shadow:3px 3px 0 #03101e}
+.overview-hero p{margin:0 0 25px;color:#c8d8e7!important;text-shadow:1px 2px 0 #03101e}
+.overview-hero .hero-actions{gap:10px}
+.overview-hero .hero-actions .button{
+  min-width:150px;
+  min-height:49px;
+  padding:0 19px;
+  border:0!important;
+  border-radius:0;
+  box-shadow:none;
+  font-size:10px;
+  line-height:1;
+  background-position:center!important;
+  background-size:100% 145%!important;
+  background-repeat:no-repeat!important;
+  image-rendering:pixelated;
+}
+.overview-hero .button-primary{background-image:url('/overview/button-start.png')!important;background-color:transparent!important;color:#0c2441}
+.overview-hero .button-secondary{background-image:url('/overview/button-progress.png')!important;background-color:transparent!important;color:#edf6ff}
+.overview-hero .hero-actions .button:hover{filter:brightness(1.13);transform:translateY(-2px)}
+.overview-hero .hero-actions .button:active{filter:brightness(.94);transform:translateY(1px)}
+
+.overview-heading,.mode-heading{margin-top:30px;margin-bottom:17px}
+.overview-stats{gap:14px}
+.overview-stats .stat-card{
+  position:relative;
+  min-height:76px;
+  padding:13px 22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  overflow:hidden;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none;
+  background:url('/overview/card-stat.png') center/100% 100% no-repeat!important;
+  image-rendering:pixelated;
+}
+.overview-stats .stat-card-top{min-width:0;flex:1}
+.overview-stats .stat-card-top span{line-height:1.5}
+.overview-stats .stat-value{flex:none;margin:0;font-size:27px;line-height:1.1;text-align:right}
+
+.overview-modes{gap:14px}
+.overview-modes .mode-card{
+  min-height:195px;
+  padding:22px 24px;
+  display:grid;
+  grid-template-columns:minmax(100px,40%) minmax(0,1fr);
+  align-items:center;
+  column-gap:11px;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none;
+  background:url('/overview/card-mode.png') center/100% 100% no-repeat!important;
+  image-rendering:pixelated;
+}
+.overview-modes .mode-card:hover{background:url('/overview/card-mode.png') center/100% 100% no-repeat!important;filter:brightness(1.12);box-shadow:none}
+.overview-modes .mode-icon{
+  width:min(100%,114px);height:114px;margin:0;
+  justify-self:center;
+  display:grid;place-items:center;
+  background:transparent!important;border:0!important;box-shadow:none;
+}
+.overview-modes .mode-card>div:nth-child(2){min-width:0;padding-right:6px}
+.overview-modes .mode-icon img{
+  display:block;width:100%;height:100%;object-fit:contain;
+  image-rendering:pixelated;
+  filter:drop-shadow(3px 4px 0 #020b16);
+}
+.overview-modes .mode-card h3{margin:0 0 7px;font-size:10px;color:var(--pixel-text)!important}
+.overview-modes .mode-card p{max-width:100%;line-height:1.5}
+.overview-modes .mode-arrow{right:17px;bottom:19px;color:var(--pixel-accent)}
+
+@media(max-width:650px){
+  .page-intro.overview-hero{min-height:252px;padding:26px 23px}
+  .overview-hero h1{font-size:17px}
+  .overview-hero p{max-width:260px;font-size:11px}
+  .overview-stats,.overview-modes{gap:9px}
+  .overview-stats .stat-card{min-height:86px;padding:15px 17px;display:block}
+  .overview-stats .stat-card-top span{font-size:6px}
+  .overview-stats .stat-value{font-size:24px;margin-top:9px;text-align:left}
+  .overview-modes{grid-template-columns:1fr}
+  .overview-modes .mode-card{min-height:145px;padding:18px;grid-template-columns:92px minmax(0,1fr);gap:13px}
+  .overview-modes .mode-icon{width:88px;height:88px}
+  .overview-modes .mode-card h3{font-size:8px}
+  .overview-modes .mode-card p{font-size:9px}
+}
+@media(max-width:390px){
+  .overview-hero h1{font-size:14px}
+  .overview-modes .mode-card{grid-template-columns:76px minmax(0,1fr)}
+  .overview-modes .mode-icon{width:74px;height:74px}
+}
+
+/* Auth dialog: one fixed frame and identical dimensions for sign-in and sign-up. */
+.auth-modal.modal{
+  position:relative;
+  isolation:isolate;
+  display:grid;
+  grid-template-columns:minmax(190px, .72fr) minmax(0, 1fr);
+  width:min(760px, calc(100vw - 36px))!important;
+  max-width:760px!important;
+  height:min(620px, 90vh)!important;
+  min-height:500px!important;
+  max-height:90vh!important;
+  padding:0!important;
+  overflow:hidden!important;
+  border:0!important;
+  border-radius:3px!important;
+  background:#091729!important;
+  box-shadow:8px 8px 0 #030a14, 0 24px 80px #020711c9!important;
+}
+.auth-modal.modal::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:5;
+  pointer-events:none;
+  background:url('/auth/auth-frame.png') center / 100% 100% no-repeat;
+  image-rendering:pixelated;
+}
+.auth-modal .auth-art{
+  min-width:0;
+  min-height:0;
+  height:100%;
+  border:0;
+  background-position:center;
+}
+.auth-modal .auth-art::before{background:linear-gradient(180deg,#07142622,#07142666)}
+.auth-modal .auth-content{
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-width:0;
+  min-height:0;
+  height:100%;
+  max-height:none;
+  overflow-y:auto;
+  padding:56px 48px 42px;
+}
+.auth-modal .auth-close{z-index:6!important;top:28px!important;right:30px!important}
+.auth-modal h2{margin:0 48px 8px 0!important}
+.auth-modal .muted{margin-bottom:20px!important}
+.auth-modal .auth-form{width:100%;gap:12px}
+.auth-modal .auth-form input{box-sizing:border-box}
+.auth-modal .auth-submit,
+.auth-modal .auth-form .auth-submit{
+  align-self:center;
+  width:min(100%, 276px)!important;
+  min-width:0!important;
+  height:58px;
+  flex:none;
+  margin-top:7px;
+  padding:0 24px;
+  background-size:100% 100%!important;
+}
+.auth-modal .auth-switch,
+.auth-modal .text-button.auth-switch{
+  display:block;
+  align-self:center;
+  width:auto!important;
+  min-height:0!important;
+  margin:12px auto 0!important;
+  padding:7px 0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:none!important;
+  box-shadow:none!important;
+  color:#a9c9e6!important;
+  font:8px KeyflowPixel,monospace!important;
+  text-align:center;
+  text-decoration:none;
+}
+.auth-modal .auth-switch:hover{text-decoration:underline;filter:brightness(1.2)}
+
+@media(max-width:650px){
+  .auth-modal.modal{
+    display:grid!important;
+    grid-template-columns:1fr;
+    grid-template-rows:92px minmax(0,1fr);
+    width:min(460px, calc(100vw - 28px))!important;
+    height:min(680px, 92vh)!important;
+    min-height:500px!important;
+    max-height:92vh!important;
+  }
+  .auth-modal .auth-art{height:92px;min-height:0;border:0;border-bottom:1px solid #486582;background-position:center 42%}
+  .auth-modal .auth-content{height:auto;padding:38px 30px 30px}
+  .auth-modal .auth-close{top:14px!important;right:18px!important;width:36px!important;height:36px!important}
+}
+@media(max-width:420px){
+  .auth-modal.modal{height:min(650px,92vh)!important;min-height:490px!important}
+  .auth-modal .auth-content{padding:34px 24px 26px}
+  .auth-modal .auth-submit,.auth-modal .auth-form .auth-submit{width:min(100%,250px)!important;height:52px}
+}
+
+/* Fixes from auth/sidebar visual review. */
+@media(min-width:651px){
+  .sidebar .nav-list{gap:13px}
+}
+.auth-modal .auth-content{padding-right:78px;padding-left:50px}
+.auth-modal .auth-form{width:100%;max-width:100%;min-width:0}
+.auth-modal .auth-form label{min-width:0}
+.auth-modal .auth-form input,
+:root[data-theme="light"] .auth-modal .auth-form input{
+  display:block;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+  background:#091727!important;
+  color:#f2f7fc!important;
+  border:2px solid #547493!important;
+  border-radius:2px!important;
+  box-shadow:inset 0 0 0 2px #0d2034!important;
+}
+.auth-modal .auth-form input::placeholder{color:#91a9bd!important;opacity:1}
+.auth-modal .auth-form input:focus{border-color:#a5cce9!important;outline:2px solid #a5cce955!important}
+@media(max-width:650px){
+  .auth-modal .auth-content{padding-right:30px;padding-left:30px}
+}
+@media(max-width:420px){
+  .auth-modal .auth-content{padding-right:24px;padding-left:24px}
+}
+
+/* Keep the forest image inside the frame's inner opening. */
+@media(min-width:651px){
+  .auth-modal .auth-art{
+    height:auto!important;
+    min-height:0!important;
+    align-self:stretch;
+    margin:40px 0!important;
+  }
+}
+@media(max-width:650px){
+  .auth-modal .auth-art{height:92px!important;margin:0!important}
+}
+
+/* Unified auth artwork: forest, form field and frame are one aligned canvas. */
+@media(min-width:651px){
+  .auth-modal.modal{
+    width:min(760px,calc(100vw - 36px))!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:90vh!important;
+    aspect-ratio:1408 / 1120;
+    background:#091729 url('/auth/auth-background.png') center / 100% 100% no-repeat!important;
+    border:0!important;
+  }
+  .auth-modal.modal::before{display:none!important}
+  .auth-modal .auth-art{
+    height:100%!important;
+    min-height:0!important;
+    margin:0!important;
+    border:0!important;
+    background:transparent!important;
+  }
+  .auth-modal .auth-art::before{display:none!important}
+  .auth-modal .auth-content{
+    height:100%;
+    max-height:none;
+    background:transparent!important;
+    padding:52px 78px 40px 26px;
+  }
+}
+@media(max-width:650px){
+  .auth-modal.modal{
+    aspect-ratio:auto;
+    background:#091729!important;
+  }
+  .auth-modal.modal::before{
+    display:block!important;
+    background:url('/auth/auth-frame.png') center/100% 100% no-repeat!important;
+  }
+  .auth-modal .auth-art{
+    background:#081526 url('/sidebar-nature.png') center 44%/cover no-repeat!important;
+    border-bottom:2px solid #304c69!important;
+  }
+  .auth-modal .auth-art::before{display:block!important}
+  .auth-modal .auth-content{background:linear-gradient(145deg,#10213a,#0a1728 72%)!important}
+}
+@media(min-width:651px){
+  .auth-modal.modal{grid-template-columns:42.9% 57.1%}
+}
+.auth-modal .auth-close{top:36px!important;right:42px!important}
+@media(max-width:650px){.auth-modal .auth-close{top:20px!important;right:26px!important}}
+
+/* Generated pixel UI assets for the achievements header and rarity controls. */
+.awards-hero{
+  border:12px solid transparent!important;
+  border-image-source:url('/achievements/ui/hero-frame.png')!important;
+  border-image-slice:68!important;
+  border-image-width:12px!important;
+  border-image-repeat:stretch!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.awards-progress-card{
+  border:9px solid transparent!important;
+  border-image-source:url('/achievements/ui/progress-frame.png')!important;
+  border-image-slice:62!important;
+  border-image-width:9px!important;
+  border-image-repeat:stretch!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.rarity-filters{
+  border:10px solid transparent!important;
+  border-image-source:url('/achievements/ui/hero-frame.png')!important;
+  border-image-slice:68!important;
+  border-image-width:10px!important;
+  border-image-repeat:stretch!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.rarity-filters button{
+  min-height:38px;
+  padding:7px 12px;
+  border:0!important;
+  border-radius:0!important;
+  background:url('/achievements/ui/filter-idle.png') center/100% 100% no-repeat!important;
+  box-shadow:none!important;
+  color:#c5d6e7!important;
+  font:7px KeyflowPixel,monospace!important;
+  text-shadow:1px 1px #06111e;
+}
+.rarity-filters button:hover{filter:brightness(1.18)}
+.rarity-filters button.selected{
+  background:url('/achievements/ui/filter-active.png') center/100% 100% no-repeat!important;
+  color:#10253a!important;
+  text-shadow:0 1px #d5eeff;
+  filter:none;
+}
+.rarity-filters button small{
+  min-width:19px;
+  padding:3px 4px;
+  background:#071727d9!important;
+  color:#d7e8f5!important;
+  font:7px KeyflowPixel,monospace!important;
+  text-shadow:none;
+}
+.awards-grid{
+  width:min(100%,1320px);
+  max-width:1320px;
+  margin-inline:auto;
+  gap:19px;
+}
+.award-card.locked{
+  opacity:1!important;
+  filter:brightness(.68) saturate(.62) contrast(1.06)!important;
+}
+.award-card.locked .award-mark img{
+  opacity:1!important;
+  filter:grayscale(.82) brightness(.58) drop-shadow(0 5px 0 #020305)!important;
+}
+.award-card.locked .award-rarity,
+.award-card.locked h3,
+.award-card.locked p,
+.award-card.locked .award-status{opacity:1}
+@media(max-width:1150px){.awards-grid{width:100%;max-width:none}}
+/* Keep the area behind each generated frame clear so the page background shows through. */
+.awards-hero,.awards-progress-card,.rarity-filters{
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.rarity-filters button{background:#0b1a2b url('/achievements/ui/filter-idle.png') center/100% 100% no-repeat!important}
+.rarity-filters button.selected{background:#a8d8f5 url('/achievements/ui/filter-active.png') center/100% 100% no-repeat!important}

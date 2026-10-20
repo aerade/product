@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import {
   Activity, ArrowRight, Award, BarChart3,
-  Code2, Crown, Flame, Keyboard, LockKeyhole,
-  LogOut, Medal, RotateCcw, Settings2, Sparkles, Target, Trophy, Type, X,
+  Code2, Flame, Keyboard,
+  LogOut, RotateCcw, Settings2, Sparkles, Target, Trophy, Type, X,
 } from 'lucide-react'
 import { api, type Leaderboard, type Progress, type Session, type User } from './api'
-import { achievementInfo, difficultyInfo, makeExercise, modeName, modes, prettyChar, rarityNames, type Difficulty, type Language, type Mode, type Rarity } from './data'
+import { achievementInfo, difficultyInfo, makeExercise, modeName, modes, prettyChar, rarityNames, type Difficulty, type Language, type Mode } from './data'
 import { createRun, levelForXp, metrics, multiplier, press, type Run } from './engine'
 import { fingerForChar, keyForChar, keyboardRows } from './keyboard'
+import { demoLeaderboardRows } from './leaderboardDemo'
 import SettingsModal from './SettingsModal'
 import { applySettings, loadSettings, saveSettings, type Settings } from './settings'
 
@@ -98,19 +99,15 @@ function saveGuestRun(guest: GuestData, run: Run): { next: GuestData; result: Re
   return { next, result: { xp: xpEarned, unlocked, stored: true } }
 }
 
-function Mark({ compact = false }: { compact?: boolean }) {
-  return <img src="/keyflow-mark.png" alt="" className={`keyflow-mark ${compact ? 'keyflow-mark-small' : ''}`} />
-}
-
 function Avatar({ number, size = 'normal' }: { number: number; size?: 'normal' | 'small' }) {
-  return <img className={`user-avatar ${size === 'small' ? 'user-avatar-small' : ''}`} src={`/avatars/avatar-${String(number).padStart(2, '0')}.png`} alt="" />
+  return <span className={`avatar-frame ${size === 'small' ? 'avatar-frame-small' : ''}`}><img className="user-avatar" src={`/avatars/forest-${String(number).padStart(2, '0')}.png`} alt="" /></span>
 }
 
-function StatCard({ label, value, suffix, icon: Icon, detail }: { label: string; value: string | number; suffix?: string; icon: typeof Activity; detail?: string }) {
-  return <div className="stat-card"><div className="stat-card-top"><span>{label}</span><Icon size={17} strokeWidth={1.7} /></div><div className="stat-value">{value}<small>{suffix}</small></div>{detail && <p>{detail}</p>}</div>
+function StatCard({ label, value, suffix, icon: Icon, detail }: { label: string; value: string | number; suffix?: string; icon?: typeof Activity; detail?: string }) {
+  return <div className="stat-card"><div className="stat-card-top"><span>{label}</span>{Icon && <Icon size={17} strokeWidth={1.7} />}</div><div className="stat-value">{value}<small>{suffix}</small></div>{detail && <p>{detail}</p>}</div>
 }
 
-function Navigation({ page, setPage, onAuth, onSettings, user, avatar, xp }: { page: Page; setPage: (page: Page) => void; onAuth: () => void; onSettings: () => void; user: User | null; avatar: number; xp: number }) {
+function Navigation({ page, setPage, onAuth, user, avatar, xp }: { page: Page; setPage: (page: Page) => void; onAuth: () => void; user: User | null; avatar: number; xp: number }) {
   const links: { id: Page; label: string; icon: typeof Keyboard }[] = [
     { id: 'overview', label: 'Главная', icon: Target },
     { id: 'practice', label: 'Тренировка', icon: Keyboard },
@@ -119,15 +116,14 @@ function Navigation({ page, setPage, onAuth, onSettings, user, avatar, xp }: { p
     { id: 'awards', label: 'Достижения', icon: Award },
   ]
   return <aside className="sidebar">
-    <div className="brand"><img src="/keyflow-logo.png" className="brand-logo" alt="Keyflow" /><img src="/keyflow-mark.png" className="brand-mark-compact" alt="" /></div>
+    <div className="brand"><img src="/keyflow-sidebar-logo.png" className="brand-logo" alt="Keyflow" /><img src="/keyflow-sidebar-mark.png" className="brand-mark-compact" alt="" /></div>
     <nav aria-label="Основная навигация" className="nav-list">
-      {links.map(({ id, label, icon: Icon }) => <button key={id} type="button" className={`nav-item ${page === id ? 'active' : ''}`} onClick={() => setPage(id)}><Icon size={18} strokeWidth={1.8} /><span>{label}</span>{page === id && <span className="nav-dot" />}</button>)}
-      <button type="button" className="nav-item compact-action" onClick={onSettings} aria-label="Настройки"><Settings2 size={18} /><span>Настройки</span></button>
+      {links.map(({ id, label, icon: Icon }) => <button key={id} type="button" className={`nav-item nav-pixel nav-pixel-${id} ${page === id ? 'active' : ''}`} aria-label={label} onClick={() => setPage(id)}><Icon size={18} strokeWidth={1.8} /><span>{label}</span>{page === id && <span className="nav-dot" />}</button>)}
+      <button type="button" className="nav-item nav-pixel nav-pixel-settings" aria-label="Настройки временно недоступны" title="Настройки временно недоступны" disabled><Settings2 size={18} /><span>Настройки</span></button>
       <button type="button" className="nav-item compact-action" onClick={onAuth} aria-label="Профиль"><Avatar number={avatar} size="small" /><span>Профиль</span></button>
     </nav>
     <div className="sidebar-bottom">
       <div className="level-panel"><div className="level-panel-title"><span>Уровень {levelForXp(xp)}</span><strong>{xp} XP</strong></div><div className="progress-track"><span style={{ width: `${(xp % 250) / 2.5}%` }} /></div><small>{xp % 250} / 250 XP</small></div>
-      <button type="button" className="sidebar-settings" onClick={onSettings}><Settings2 size={17} /> Настройки</button>
       <button type="button" className="profile-button" onClick={onAuth}><Avatar number={avatar} /><span><strong>{user ? user.name : 'Гость'}</strong><small>{user ? user.email : 'Войти в аккаунт'}</small></span><ArrowRight size={15} /></button>
     </div>
   </aside>
@@ -164,9 +160,15 @@ function AuthModal({ onClose, onSignedIn, user, onLogout }: { onClose: () => voi
     finally { setBusy(false) }
   }
 
-  return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}><div className="modal auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title"><button type="button" className="icon-button modal-close" onClick={onClose} aria-label="Закрыть"><X size={19} /></button><Mark compact />
-    {user ? <><h2 id="auth-title">Профиль: {user.name}</h2><p className="muted">Результаты доступны после входа на другом устройстве.</p><div className="account-summary"><span>Всего опыта</span><strong>{user.xp} XP</strong></div><button type="button" className="button button-secondary full" onClick={() => { onLogout(); onClose() }}><LogOut size={17} /> Выйти из аккаунта</button></> : <><h2 id="auth-title">{register ? 'Создать аккаунт' : 'Вход в Keyflow'}</h2><p className="muted">{register ? 'Для сохранения результатов и участия в рейтинге.' : 'Введите email и пароль.'}</p><form onSubmit={submit} className="auth-form">{register && <label>Имя<input required minLength={2} maxLength={40} value={name} onChange={(event) => setName(event.target.value)} placeholder="Как к тебе обращаться" /></label>}<label>Email<input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" /></label><label>Пароль<input required type="password" minLength={register ? 8 : 1} value={password} onChange={(event) => setPassword(event.target.value)} placeholder={register ? 'Минимум 8 символов' : 'Ваш пароль'} /></label>{error && <div className="form-error" role="alert">{error}</div>}<button type="submit" className="button button-primary full" disabled={busy}>{busy ? 'Подождите…' : register ? 'Создать аккаунт' : 'Войти'}<ArrowRight size={17} /></button></form><button type="button" className="text-button" onClick={() => { setRegister(!register); setError('') }}>{register ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Зарегистрироваться'}</button></>}
-  </div></div>
+  return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
+    <div className="modal auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <div className="auth-art" aria-hidden="true" />
+      <section className="auth-content">
+        <button type="button" className="icon-button modal-close auth-close" onClick={onClose} aria-label="Закрыть"><img src="/auth/close.png" alt="" /></button>
+        {user ? <><h2 id="auth-title">Профиль: {user.name}</h2><p className="muted">Результаты доступны после входа на другом устройстве.</p><div className="account-summary"><span>Всего опыта</span><strong>{user.xp} XP</strong></div><button type="button" className="button button-secondary full auth-submit" onClick={() => { onLogout(); onClose() }}><LogOut size={17} /> Выйти из аккаунта</button></> : <><h2 id="auth-title">{register ? 'Создать аккаунт' : 'Вход в Keyflow'}</h2><p className="muted">{register ? 'Для сохранения результатов и участия в рейтинге.' : 'Введите email и пароль.'}</p><form onSubmit={submit} className="auth-form">{register && <label>Имя<input required minLength={2} maxLength={40} value={name} onChange={(event) => setName(event.target.value)} placeholder="Как к тебе обращаться" /></label>}<label>Email<input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" /></label><label>Пароль<input required type="password" minLength={register ? 8 : 1} value={password} onChange={(event) => setPassword(event.target.value)} placeholder={register ? 'Минимум 8 символов' : 'Ваш пароль'} /></label>{error && <div className="form-error" role="alert">{error}</div>}<button type="submit" className="button button-primary full auth-submit" disabled={busy}>{busy ? 'Подождите…' : register ? 'Создать аккаунт' : 'Войти'}<ArrowRight size={17} /></button></form><button type="button" className="text-button auth-switch" onClick={() => { setRegister(!register); setError('') }}>{register ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Создать аккаунт'}</button></>}
+      </section>
+    </div>
+  </div>
 }
 
 function chartPoints(sessions: Session[]) {
@@ -190,7 +192,6 @@ export default function App() {
   const [leaderboard, setLeaderboard] = useState<Leaderboard | null>(null)
   const [boardMetric, setBoardMetric] = useState<Leaderboard['metric']>('wpm')
   const [boardPeriod, setBoardPeriod] = useState<Leaderboard['period']>('week')
-  const [rarityFilter, setRarityFilter] = useState<Rarity | 'all'>('all')
   const [result, setResult] = useState<Result | null>(null)
   const [feedback, setFeedback] = useState<{ id: number; kind: 'correct' | 'error' | 'combo' } | null>(null)
   const [authOpen, setAuthOpen] = useState(false)
@@ -202,7 +203,6 @@ export default function App() {
     localStorage.setItem('real-guest-avatar', String(random))
     return random
   })
-  const [serviceOnline, setServiceOnline] = useState(true)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const textRef = useRef<HTMLDivElement>(null)
   const savedRuns = useRef(new Set<string>())
@@ -238,7 +238,7 @@ export default function App() {
     api.me().then(({ user: current }) => {
       setUser(current)
       if (current) api.progress().then(setServerProgress).catch(() => {})
-    }).catch(() => setServiceOnline(false))
+    }).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -266,7 +266,7 @@ export default function App() {
 
   useEffect(() => {
     if (page !== 'leaderboard') return
-    api.leaderboard(boardMetric, boardPeriod).then((data) => { setLeaderboard(data); setServiceOnline(true) }).catch(() => { setLeaderboard(null); setServiceOnline(false) })
+    api.leaderboard(boardMetric, boardPeriod).then(setLeaderboard).catch(() => setLeaderboard(null))
   }, [page, boardMetric, boardPeriod])
 
   useEffect(() => {
@@ -352,21 +352,21 @@ export default function App() {
 
   const recent = computedProgress?.sessions || []
   const earned = new Set(computedProgress?.achievements.map((achievement) => achievement.key) || [])
+  const liveBoard = leaderboard?.metric === boardMetric && leaderboard.period === boardPeriod && leaderboard.rows.length > 0 ? leaderboard : null
+  const boardRows = liveBoard?.rows ?? demoLeaderboardRows(boardMetric, boardPeriod)
 
   return <div className={`app-shell ${page === 'practice' && settings.focusMode ? 'focus-mode' : ''}`} data-caret={settings.caretStyle}>
-    <Navigation page={page} setPage={setPage} onAuth={() => setAuthOpen(true)} onSettings={() => setSettingsOpen(true)} user={user} avatar={avatar} xp={xp} />
+    <Navigation page={page} setPage={setPage} onAuth={() => setAuthOpen(true)} user={user} avatar={avatar} xp={xp} />
     <div className="main-area">
       {page === 'practice' && feedback && <div key={feedback.id} className={`key-feedback key-feedback-${feedback.kind}`} aria-hidden="true" />}
       <main className="content">
-        <div className="mobile-brand"><img src="/keyflow-logo.png" alt="Keyflow" /></div>
+        <div className="mobile-brand"><img src="/keyflow-sidebar-logo.png" alt="Keyflow" /></div>
         {page === 'overview' && <>
-          <div className="page-intro"><div><h1>Тренировка печати</h1><p>Слова, предложения, код и символы.</p><div className="hero-actions"><button type="button" className="button button-primary" onClick={() => begin(settings.defaultMode, settings.defaultLanguage, settings.defaultDifficulty)}><Keyboard size={19} /> Начать <ArrowRight size={18} /></button><button type="button" className="button button-secondary" onClick={() => setPage('progress')}>Прогресс</button></div></div></div>
+          <div className="page-intro overview-hero"><div className="overview-hero-copy"><h1>Тренировка печати</h1><p>Слова, предложения, код и символы.</p><div className="hero-actions"><button type="button" className="button button-primary" onClick={() => begin(settings.defaultMode, settings.defaultLanguage, settings.defaultDifficulty)}>Начать</button><button type="button" className="button button-secondary" onClick={() => setPage('progress')}>Прогресс</button></div></div></div>
           <div className="section-heading overview-heading"><h2>Статистика</h2><button type="button" className="link-button" onClick={() => setPage('progress')}>Подробнее <ArrowRight size={17} /></button></div>
-          <div className="stats-grid"><StatCard label="ТРЕНИРОВКИ" value={computedProgress.summary.sessions} icon={Activity} /><StatCard label="ЛУЧШАЯ СКОРОСТЬ" value={Math.round(computedProgress.summary.best_wpm)} suffix="WPM" icon={Flame} /><StatCard label="ТОЧНОСТЬ" value={Math.round(computedProgress.summary.avg_accuracy)} suffix="%" icon={Target} /><StatCard label="ОПЫТ" value={xp} suffix="XP" icon={Sparkles} /></div>
-          <div className="daily-goal">Сегодня: {recent.filter((session) => new Date(session.created_at).toDateString() === new Date().toDateString()).length} / {settings.dailyGoal} тренировок</div>
+          <div className="stats-grid overview-stats"><StatCard label="ТРЕНИРОВКИ" value={computedProgress.summary.sessions} /><StatCard label="ЛУЧШАЯ СКОРОСТЬ" value={Math.round(computedProgress.summary.best_wpm)} suffix="WPM" /><StatCard label="ТОЧНОСТЬ" value={Math.round(computedProgress.summary.avg_accuracy)} suffix="%" /><StatCard label="ОПЫТ" value={xp} suffix="XP" /></div>
           <div className="section-heading mode-heading"><h2>Режимы</h2></div>
-          <div className="mode-grid">{modes.map((item) => <button type="button" className="mode-card" key={item.id} onClick={() => begin(item.id, item.id === 'code' ? 'en' : language, difficulty)}><div className="mode-icon">{item.id === 'code' ? <Code2 size={26} /> : item.id === 'symbols' ? <Sparkles size={26} /> : item.id === 'sentences' ? <Type size={26} /> : <Keyboard size={26} />}</div><div><h3>{item.title}</h3><p>{item.subtitle}</p></div><ArrowRight className="mode-arrow" size={20} /></button>)}</div>
-          {!user && <div className="sync-banner"><LockKeyhole size={22} /><div><strong>Сохранение результатов</strong><p>Войдите, чтобы видеть прогресс на других устройствах.</p></div><button type="button" onClick={() => setAuthOpen(true)}>Войти <ArrowRight size={16} /></button></div>}
+          <div className="mode-grid overview-modes">{modes.map((item) => <button type="button" className="mode-card" key={item.id} onClick={() => begin(item.id, item.id === 'code' ? 'en' : language, difficulty)}><div className="mode-icon"><img src={`/overview/mode-${item.id}.png`} alt="" /></div><div><h3>{item.title}</h3><p>{item.subtitle}</p></div><ArrowRight className="mode-arrow" size={20} /></button>)}</div>
         </>}
 
         {page === 'practice' && <>
@@ -378,9 +378,42 @@ export default function App() {
 
         {page === 'progress' && <><div className="page-heading"><div><h1>Прогресс</h1></div><button type="button" className="button button-primary" onClick={() => begin()}><Keyboard size={17} /> Тренироваться</button></div><div className="stats-grid"><StatCard label="СЕССИЙ" value={computedProgress.summary.sessions} icon={Activity} /><StatCard label="ВРЕМЯ В ПРАКТИКЕ" value={Math.round(computedProgress.summary.total_ms / 60000)} suffix="МИН" icon={Target} /><StatCard label="ЛУЧШИЙ РЕЗУЛЬТАТ" value={Math.round(computedProgress.summary.best_wpm)} suffix="WPM" icon={Flame} /><StatCard label="НАПЕЧАТАНО" value={computedProgress.summary.total_chars} icon={Type} /></div><div className="progress-layout"><div className="panel chart-panel"><div className="section-heading"><div><h2>Скорость печати</h2></div><span className="chart-unit">WPM / ПОСЛЕДНИЕ 10 СЕССИЙ</span></div>{recent.length ? <div className="chart"><div className="chart-grid"><span>100</span><span>75</span><span>50</span><span>25</span></div><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="График скорости"><polyline points={chartPoints(recent)} fill="none" stroke="currentColor" strokeWidth="1.7" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" /></svg></div> : <div className="empty-chart"><BarChart3 size={32} /><strong>Нет данных</strong><p>График появится после первой тренировки.</p></div>}</div><div className="panel weak-panel"><h2>Сложные символы</h2><p>Чаще всего ошибки возникают на этих символах.</p>{Object.entries(computedProgress.mistakes).length ? <div className="weak-list">{Object.entries(computedProgress.mistakes).map(([char, count]) => <div key={char}><span className="weak-char">{prettyChar(char)}</span><div className="weak-track"><span style={{ width: `${Math.min(100, count / Math.max(...Object.values(computedProgress.mistakes)) * 100)}%` }} /></div><strong>{count}</strong></div>)}</div> : <div className="empty-weak">Ошибок пока нет.</div>}</div></div><div className="section-heading history-heading"><div><h2>Последние тренировки</h2></div><span className="section-subtle">{recent.length} ЗАПИСЕЙ</span></div><div className="history-list">{recent.length ? recent.slice(0, 8).map((session) => <div className="history-row" key={session.id}><div className="history-mode">{session.mode === 'code' ? <Code2 size={18} /> : <Keyboard size={18} />}</div><div className="history-name"><strong>{modeName[session.mode]}</strong><small>{new Date(session.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })} · {session.language.toUpperCase()}</small></div><div className="history-metrics"><span><b>{Math.round(session.wpm)}</b> WPM</span><span><b>{Math.round(session.accuracy)}%</b> точность</span><strong>+{session.xp_earned} XP</strong></div></div>) : <div className="empty-list">Тренировок ещё нет. Начни с короткой серии слов.</div>}</div></>}
 
-        {page === 'leaderboard' && <><div className="page-heading"><div><h1>Рейтинг</h1></div></div><div className="board-controls"><div className="segmented">{([['wpm', 'Скорость'], ['accuracy', 'Точность'], ['xp', 'Опыт']] as const).map(([value, label]) => <button key={value} type="button" className={boardMetric === value ? 'selected' : ''} onClick={() => setBoardMetric(value)}>{label}</button>)}</div><div className="segmented">{([['today', 'Сегодня'], ['week', 'Неделя'], ['all', 'Всё время']] as const).map(([value, label]) => <button key={value} type="button" className={boardPeriod === value ? 'selected' : ''} onClick={() => setBoardPeriod(value)}>{label}</button>)}</div></div><div className="board-panel"><div className="board-header"><span>МЕСТО / УЧАСТНИК</span><span>{boardMetric === 'wpm' ? 'СКОРОСТЬ' : boardMetric === 'accuracy' ? 'ТОЧНОСТЬ' : 'ОПЫТ'}</span></div>{leaderboard?.rows.length ? leaderboard.rows.map((entry, index) => <div className={`board-row ${entry.id === user?.id ? 'board-me' : ''}`} key={entry.id}><div className="board-person"><span className={`rank rank-${index + 1}`}>{index === 0 ? <Crown size={20} /> : (index + 1).toString().padStart(2, '0')}</span><span className="board-avatar"><Avatar number={entry.avatar || 1} size="small" /></span><span><strong>{entry.name}{entry.id === user?.id ? ' · ты' : ''}</strong><small>{entry.sessions} тренировок</small></span></div><strong className="board-score">{boardMetric === 'accuracy' ? `${Math.round(entry.value)}%` : Math.round(entry.value)} <small>{boardMetric === 'wpm' ? 'WPM' : boardMetric === 'xp' ? 'XP' : ''}</small></strong></div>) : <div className="board-empty"><Medal size={36} /><h3>{serviceOnline ? 'Рейтинг пока пуст' : 'Рейтинг сейчас недоступен'}</h3><p>{serviceOnline ? 'Завершите тренировку в аккаунте.' : 'Для общего рейтинга нужно запустить API.'}</p><button type="button" className="button button-primary" onClick={() => user ? begin() : setAuthOpen(true)}>{user ? 'Начать тренировку' : 'Создать аккаунт'} <ArrowRight size={16} /></button></div>}</div><div className="board-note">Для рейтинга нужны 25 символов и 15 секунд.</div></>}
+        {page === 'leaderboard' && <section className="leaderboard-page">
+          <div className="page-heading"><h1>Рейтинг</h1></div>
+          <div className="board-controls">
+            <div className="segmented" aria-label="Показатель рейтинга">
+              {([['wpm', 'Скорость'], ['accuracy', 'Точность'], ['xp', 'Опыт']] as const).map(([value, label]) => <button key={value} type="button" className={boardMetric === value ? 'selected' : ''} aria-pressed={boardMetric === value} onClick={() => setBoardMetric(value)}>{label}</button>)}
+            </div>
+            <div className="segmented" aria-label="Период рейтинга">
+              {([['today', 'Сегодня'], ['week', 'Неделя'], ['all', 'Всё время']] as const).map(([value, label]) => <button key={value} type="button" className={boardPeriod === value ? 'selected' : ''} aria-pressed={boardPeriod === value} onClick={() => setBoardPeriod(value)}>{label}</button>)}
+            </div>
+          </div>
+          <div className="board-panel">
+            <div className="board-header">
+              <span>МЕСТО / УЧАСТНИК</span>
+              <span className="board-header-meta">{!liveBoard && <small>ТЕСТОВЫЕ ДАННЫЕ</small>}<span>{boardMetric === 'wpm' ? 'СКОРОСТЬ' : boardMetric === 'accuracy' ? 'ТОЧНОСТЬ' : 'ОПЫТ'}</span></span>
+            </div>
+            <div className="board-list" role="region" aria-label="Участники рейтинга" tabIndex={0}>
+              {boardRows.map((entry, index) => <div className={`board-row ${entry.id === user?.id ? 'board-me' : ''}`} key={entry.id}>
+                <div className="board-person">
+                  <span className={`rank rank-${index + 1}`}>{index === 0 ? <img src="/leaderboard/ui/crown.png" alt="1 место" /> : (index + 1).toString().padStart(2, '0')}</span>
+                  <span className="board-avatar"><Avatar number={entry.avatar || 1} size="small" /></span>
+                  <span><strong>{entry.name}{entry.id === user?.id ? ' · ты' : ''}</strong><small>{entry.sessions} тренировок</small></span>
+                </div>
+                <strong className="board-score">{boardMetric === 'accuracy' ? `${Math.round(entry.value * 10) / 10}%` : Math.round(entry.value)} <small>{boardMetric === 'wpm' ? 'WPM' : boardMetric === 'xp' ? 'XP' : ''}</small></strong>
+              </div>)}
+            </div>
+          </div>
+          <div className="board-note">Для рейтинга нужны 25 символов и 15 секунд.</div>
+        </section>}
 
-        {page === 'awards' && <><div className="page-heading"><div><h1>Достижения</h1><p>Новые значки открываются во время тренировок.</p></div><div className="awards-count"><Award size={22} /><strong>{earned.size} / {achievementInfo.length}</strong><span>ОТКРЫТО</span></div></div><div className="rarity-filters" aria-label="Фильтр по редкости">{(['all', 'common', 'uncommon', 'rare', 'epic', 'legendary'] as const).map((rarity) => <button type="button" key={rarity} className={rarityFilter === rarity ? 'selected' : ''} onClick={() => setRarityFilter(rarity)}>{rarity === 'all' ? 'Все' : rarityNames[rarity]}</button>)}</div><div className="awards-grid">{achievementInfo.filter((achievement) => rarityFilter === 'all' || achievement.rarity === rarityFilter).map((achievement) => { const unlocked = earned.has(achievement.key); return <div className={`award-card rarity-${achievement.rarity} ${unlocked ? 'unlocked' : 'locked'}`} key={achievement.key}><div className="award-top"><span className="award-rarity">{rarityNames[achievement.rarity]}</span></div><div className="award-mark"><img src={`/achievements/${achievement.key}.png`} alt="" loading="lazy" /></div><h3>{achievement.name}</h3><p>{achievement.description}</p><span className="award-status">{unlocked ? 'ОТКРЫТО' : 'ЗАКРЫТО'}</span></div> })}</div></>}
+        {page === 'awards' && <>
+          <section className="awards-hero">
+            <div className="awards-intro"><h1>Достижения</h1><p>Значки за скорость, точность и регулярные тренировки.</p></div>
+            <div className="awards-progress-card"><div className="awards-progress-top"><span className="awards-trophy"><Award size={23} /></span><span><strong>{earned.size} / {achievementInfo.length}</strong><small>ОТКРЫТО</small></span><span className="awards-left"><small>ОСТАЛОСЬ</small><strong>{achievementInfo.length - earned.size}</strong></span></div><div className="awards-progress-track"><span style={{ width: `${achievementInfo.length ? (earned.size / achievementInfo.length) * 100 : 0}%` }} /></div></div>
+          </section>
+          <div className="awards-grid">{achievementInfo.map((achievement) => { const unlocked = earned.has(achievement.key); return <div className={`award-card rarity-${achievement.rarity} ${unlocked ? 'unlocked' : 'locked'}`} key={achievement.key}><div className="award-top"><span className="award-rarity">{rarityNames[achievement.rarity]}</span></div><div className="award-mark"><img src={`/achievements/${achievement.key}.png`} alt="" loading="lazy" /></div><h3>{achievement.name}</h3><p>{achievement.description}</p><span className="award-status">{unlocked ? 'ОТКРЫТО' : 'ЗАКРЫТО'}</span></div> })}</div>
+        </>}
       </main>
     </div>
     {authOpen && <AuthModal onClose={() => setAuthOpen(false)} onSignedIn={(signedIn) => { setUser(signedIn); api.progress().then(setServerProgress).catch(() => {}) }} user={user} onLogout={logout} />}

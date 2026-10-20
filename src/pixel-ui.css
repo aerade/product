@@ -1,0 +1,211 @@
+/* The nature artwork sets the palette; body copy stays readable at small sizes. */
+:root{
+  --pixel-panel:#0d1b2d;
+  --pixel-panel-raised:#132741;
+  --pixel-panel-deep:#091625;
+  --pixel-line:#4d6d8d;
+  --pixel-line-soft:#304c69;
+  --pixel-text:#edf5fc;
+  --pixel-muted:#a7bed1;
+  --pixel-accent:#a5cce9;
+  --pixel-shadow:#030b17;
+}
+:root[data-theme="light"]{
+  --pixel-panel:#f8fbfd;
+  --pixel-panel-raised:#eaf2f7;
+  --pixel-panel-deep:#dceaf3;
+  --pixel-line:#83a0b6;
+  --pixel-line-soft:#bed0dc;
+  --pixel-text:#1c3247;
+  --pixel-muted:#516e82;
+  --pixel-accent:#32688f;
+  --pixel-shadow:#b0c3d2;
+}
+
+/* Panels use flat colors, square corners and offset shadows like the pixel art. */
+.page-intro,.stat-card,.mode-card,.typing-card,.keyboard-guide,
+.live-stats,.combo-card,.hint-card,.panel,.history-list,.board-panel,
+.sync-banner,.result-modal,.modal,.settings-modal{
+  background:var(--pixel-panel)!important;
+  border:2px solid var(--pixel-line)!important;
+  border-radius:3px!important;
+  box-shadow:4px 4px 0 var(--pixel-shadow);
+  color:var(--pixel-text);
+}
+.page-intro{border-top-width:5px!important;overflow:visible}
+.page-intro::after{
+  content:"";position:absolute;right:22px;top:20px;width:34px;height:8px;
+  background:linear-gradient(to right,var(--pixel-accent) 0 8px,transparent 8px 13px,var(--pixel-accent) 13px 21px,transparent 21px 26px,var(--pixel-accent) 26px);
+  opacity:.65;
+}
+.stat-card,.mode-card,.panel,.live-stats,.combo-card,.hint-card{border-color:var(--pixel-line-soft)!important}
+.mode-card:hover,.stat-card:hover{border-color:var(--pixel-accent)!important;box-shadow:6px 6px 0 var(--pixel-shadow)}
+.mode-card:hover{background:var(--pixel-panel-raised)!important;transform:translate(-2px,-2px)}
+.mode-icon,.history-mode,.leaderboard-icon,.awards-count,.result-symbol{
+  background:var(--pixel-panel-raised)!important;
+  border:2px solid var(--pixel-line)!important;
+  border-radius:2px!important;
+  color:var(--pixel-accent);
+  box-shadow:3px 3px 0 var(--pixel-shadow);
+}
+.mode-arrow,.stat-card-top svg,.sync-banner>svg{color:var(--pixel-accent)}
+.stat-card-top,.stat-card p,.mode-card p,.page-intro p,.page-heading p,
+.hint-card p,.hint-card small,.board-note,.history-name small{color:var(--pixel-muted)!important}
+.stat-value,.stat-value small,.mode-card h3,.history-name strong,.board-score,
+.metric-row strong,.live-number,.result-stats strong{color:var(--pixel-text)!important}
+
+/* Pixel lettering is reserved for navigation, headings and compact labels. */
+.page-intro h1,.page-heading h1{
+  font-family:KeyflowPixel,monospace;
+  font-size:clamp(19px,2.25vw,30px);
+  line-height:1.65;
+  letter-spacing:0;
+  color:var(--pixel-text)!important;
+}
+.page-heading h1{color:var(--white)!important}
+.section-heading h2,.settings-content>h3,.result-modal h2,.auth-modal h2{
+  font-family:KeyflowPixel,monospace;
+  font-size:clamp(12px,1.15vw,16px);
+  line-height:1.65;
+  letter-spacing:0;
+}
+.mode-card h3,.live-stats h3,.hint-card h3,.board-empty h3,
+.setting-block h4,.history-heading h2{
+  font-family:KeyflowPixel,monospace;
+  font-size:10px;
+  line-height:1.6;
+  letter-spacing:0;
+}
+.stat-card-top span,.control-label,.typing-label,.board-header,
+.awards-count span,.result-top,.result-stats span{
+  font-family:KeyflowPixel,monospace;
+  font-size:8px;
+  line-height:1.6;
+  letter-spacing:0;
+}
+.stat-value{font-size:30px;letter-spacing:0}
+.stat-value small{font-size:10px}
+.page-heading{margin-bottom:25px}
+.page-intro p{max-width:640px}
+.daily-goal{
+  display:inline-block;margin-top:17px;padding:9px 11px;
+  border:1px solid var(--pixel-line-soft);background:var(--pixel-panel);
+  color:var(--pixel-muted);font-family:KeyflowPixel,monospace;
+  font-size:8px;line-height:1.6;
+}
+.practice-controls{border-bottom:2px solid var(--pixel-line-soft)}
+
+/* Controls share a stepped border and short, tactile movement. */
+.button,.segmented button,.rarity-filters button,.sync-banner button,
+.link-button,.icon-button,.text-button,.settings-footer button{
+  border-radius:2px;
+  font-family:KeyflowPixel,monospace;
+  font-size:9px;
+  line-height:1.6;
+  letter-spacing:0;
+}
+.button{
+  border:2px solid var(--pixel-line);
+  box-shadow:3px 3px 0 var(--pixel-shadow);
+  transition:transform .14s steps(2,end),box-shadow .14s steps(2,end),background .14s;
+}
+.button:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--pixel-shadow)}
+.button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--pixel-shadow)}
+.button-primary{background:var(--pixel-accent);border-color:var(--pixel-text);color:var(--pixel-panel-deep)}
+.button-primary:hover{background:var(--pixel-text);border-color:var(--pixel-accent);color:var(--pixel-panel-deep)}
+.button-secondary{background:var(--pixel-panel-raised);border-color:var(--pixel-line);color:var(--pixel-text)}
+.button-secondary:hover{background:var(--pixel-line-soft);border-color:var(--pixel-accent);color:var(--pixel-text)}
+.segmented{border:2px solid var(--pixel-line);border-radius:2px;background:var(--pixel-panel-deep);gap:4px}
+.segmented button{color:var(--pixel-muted);padding:9px 11px}
+.segmented button.selected{background:var(--pixel-accent);color:var(--pixel-panel-deep);box-shadow:none}
+.segmented button:hover{color:var(--pixel-text)}
+.segmented button.selected:hover{color:var(--pixel-panel-deep)}
+.rarity-filters button{border:2px solid var(--pixel-line-soft);background:var(--pixel-panel);color:var(--pixel-muted)}
+.rarity-filters button:hover,.rarity-filters button.selected{border-color:var(--pixel-accent);background:var(--pixel-panel-raised);color:var(--pixel-text)}
+.link-button,.sync-banner button,.text-button{color:var(--pixel-accent)}
+.icon-button{width:34px;height:34px;background:var(--pixel-panel-raised);border:2px solid var(--pixel-line);color:var(--pixel-text)}
+.icon-button:hover{background:var(--pixel-line-soft)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--pixel-accent);outline-offset:3px}
+
+/* The typing surface and keyboard remain visually quiet while in use. */
+.typing-card{border-top-width:4px!important}
+.typing-progress,.weak-track{
+  height:8px;border:1px solid var(--pixel-line);border-radius:0;
+  background:var(--pixel-panel-deep);
+}
+.typing-progress>span,.weak-track>span{background:var(--pixel-accent)}
+.typing-text .typed{color:var(--pixel-accent)}
+.typing-text .pending{color:var(--pixel-muted)}
+.typing-text .current,.keycap-active{background:var(--pixel-accent);color:var(--pixel-panel-deep);border-radius:0;box-shadow:none}
+.type-input-wrap,.auth-form input,.difficulty-select,
+.settings-content select,.settings-content input[type="number"],.settings-content input[type="text"]{
+  border:2px solid var(--pixel-line);border-radius:2px;
+  background:var(--pixel-panel-deep);color:var(--pixel-text);
+}
+.type-input-wrap:focus-within,.auth-form input:focus,
+.difficulty-select:focus,.settings-content select:focus{
+  border-color:var(--pixel-accent);box-shadow:3px 3px 0 var(--pixel-shadow);
+}
+.type-input-wrap textarea{color:var(--pixel-text)}
+.type-input-wrap textarea::placeholder{color:var(--pixel-muted)}
+.keycap{border:1px solid var(--pixel-line-soft);border-radius:2px;background:var(--pixel-panel-raised);color:var(--pixel-muted)}
+.keycap-active{border-color:var(--pixel-accent);color:var(--pixel-panel-deep)}
+.combo-header,.combo-bottom,.metric-row{color:var(--pixel-muted)}
+.metric-row{border-top-color:var(--pixel-line-soft)}
+.bonus-chip{border-radius:2px;background:var(--pixel-accent);color:var(--pixel-panel-deep)}
+
+/* Lists, charts, scores and dialogs use the same visual language. */
+.sync-banner{background:var(--pixel-panel-raised)!important}
+.history-row,.board-row{border-color:var(--pixel-line-soft)}
+.history-row:hover,.board-row:hover{background:var(--pixel-panel-raised)}
+.board-header{background:var(--pixel-panel-raised);color:var(--pixel-muted)}
+.board-row.board-me{background:var(--pixel-panel-raised)!important}
+.board-person small,.board-score small,.history-metrics{color:var(--pixel-muted)}
+.board-score,.history-metrics>strong,.rank-1{color:var(--pixel-accent)!important}
+.rank{font-family:KeyflowPixel,monospace;font-size:10px}
+.chart{border-color:var(--pixel-line);background:repeating-linear-gradient(to top,transparent 0,transparent calc(25% - 1px),var(--pixel-line-soft) calc(25% - 1px),var(--pixel-line-soft) 25%)}
+.chart svg{color:var(--pixel-accent)}
+.weak-char,.empty-weak,.result-stats>div,.account-summary{
+  background:var(--pixel-panel-raised)!important;
+  border:1px solid var(--pixel-line)!important;
+  border-radius:2px!important;
+  color:var(--pixel-text);
+}
+.result-modal,.modal,.settings-modal{border-top-width:4px!important}
+.result-symbol{color:var(--pixel-accent)}
+.result-stats>div{box-shadow:2px 2px 0 var(--pixel-shadow)}
+.result-xp,.account-summary strong{color:var(--pixel-accent)}
+.result-unlock{background:var(--pixel-panel-raised);border-radius:2px}
+.auth-form label,.auth-modal .muted{color:var(--pixel-muted)}
+.settings-header,.settings-footer,.setting-row{border-color:var(--pixel-line-soft)}
+.settings-nav{border-color:var(--pixel-line-soft)}
+.settings-nav button,.setting-block,.theme-card,.custom-color-grid{border-radius:2px}
+.settings-nav button.active,.settings-nav button:hover{background:var(--pixel-panel-raised);color:var(--pixel-text)}
+.setting-block,.theme-card,.custom-color-grid{background:var(--pixel-panel-raised);border:1px solid var(--pixel-line-soft)}
+.setting-switch,.setting-switch span{border-radius:2px}
+.theme-preview,.theme-preview-page>i,.theme-preview-page>span i{border-radius:1px}
+
+@media(max-width:950px){
+  .sidebar .nav-item{
+    border:1px solid transparent;border-radius:2px;
+    font-family:KeyflowPixel,monospace;font-size:8px;
+  }
+  .sidebar .nav-item.active{background:#243d58;border-color:#739abd;color:#eef6fc}
+  .sidebar .nav-item:not(:disabled):hover{background:#1b3048;border-color:#537492;color:#eef6fc}
+}
+@media(min-width:951px){
+  :root:is([data-nav-position="top"],[data-nav-position="bottom"]) .sidebar .nav-item{
+    border-radius:2px;font-family:KeyflowPixel,monospace;font-size:9px;
+  }
+}
+
+@media(max-width:650px){
+  .page-intro h1,.page-heading h1{font-size:17px;line-height:1.6}
+  .section-heading h2{font-size:11px}
+  .button,.segmented button,.rarity-filters button{font-size:7px}
+  .mode-card h3{font-size:8px}
+  .stat-card-top span{font-size:6px}
+  .sidebar{border-top:2px solid #6488a8;background:#0c1b2bed!important}
+  .sidebar .nav-item{font-size:7px}
+}
+@media(max-width:390px){.page-intro h1,.page-heading h1{font-size:14px}}
