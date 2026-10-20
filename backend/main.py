@@ -245,7 +245,7 @@ ACHIEVEMENTS = {
     "first": "Первый шаг",
     "five": "Вошёл во вкус",
     "clean": "Чистая строка",
-    "thousand": "Тысяча знаков",
+    "thousand": "Пять тысяч",
     "regular": "Ритм",
     "speed": "Быстрые пальцы",
     "streak": "Серия без ошибок",
@@ -254,48 +254,49 @@ ACHIEVEMENTS = {
     "precision": "Почти идеально",
     "speed300": "На ускорении",
     "ten_thousand": "Большая дистанция",
-    "week": "Неделя практики",
+    "week": "Три недели",
     "expert": "Восьмой уровень",
 }
 
 
 def unlock_achievements(db: sqlite3.Connection, user_id: int) -> list[str]:
     rows = db.execute(
-        """SELECT mode, language, difficulty, correct_chars, errors, cpm, accuracy, created_at
+        """SELECT mode, language, difficulty, elapsed_ms, correct_chars, errors, created_at
            FROM practice_sessions WHERE user_id = ?""", (user_id,)
     ).fetchall()
     if not rows:
         return []
     lifetime = sum(row["correct_chars"] for row in rows)
-    days = {row["created_at"][:10] for row in rows}
-    modes = {row["mode"] for row in rows}
-    languages = {row["language"] for row in rows}
-    candidates = {"first"}
-    if len(rows) >= 5:
+    qualified = [row for row in rows if row["correct_chars"] >= 40 and row["elapsed_ms"] >= 15_000]
+    days = {row["created_at"][:10] for row in qualified}
+    candidates = set()
+    if len(qualified) >= 3:
+        candidates.add("first")
+    if len(qualified) >= 12:
         candidates.add("five")
-    if any(row["errors"] == 0 and row["correct_chars"] >= 25 for row in rows):
+    if any(row["errors"] == 0 and row["correct_chars"] >= 120 for row in rows):
         candidates.add("clean")
-    if lifetime >= 1000:
+    if lifetime >= 5_000:
         candidates.add("thousand")
-    if len(days) >= 3:
-        candidates.add("regular")
-    if any(row["cpm"] >= 200 and row["correct_chars"] >= 25 for row in rows):
-        candidates.add("speed")
-    if any(row["errors"] == 0 and row["correct_chars"] >= 100 for row in rows):
-        candidates.add("streak")
-    if len(languages) >= 2:
-        candidates.add("polyglot")
-    if len(modes) >= 4:
-        candidates.add("all_modes")
-    if any(row["accuracy"] >= 98 and row["correct_chars"] >= 100 for row in rows):
-        candidates.add("precision")
-    if any(row["cpm"] >= 300 and row["correct_chars"] >= 60 for row in rows):
-        candidates.add("speed300")
-    if lifetime >= 10_000:
-        candidates.add("ten_thousand")
     if len(days) >= 7:
+        candidates.add("regular")
+    if any(row["correct_chars"] >= 120 and row["correct_chars"] * 60_000 / row["elapsed_ms"] >= 260 for row in rows):
+        candidates.add("speed")
+    if any(row["errors"] == 0 and row["correct_chars"] >= 240 for row in rows):
+        candidates.add("streak")
+    if all(sum(row["language"] == language and row["correct_chars"] >= 100 for row in qualified) >= 3 for language in ("ru", "en")):
+        candidates.add("polyglot")
+    if all(sum(row["mode"] == mode and row["difficulty"] >= 3 for row in qualified) >= 3 for mode in ("words", "sentences", "code", "symbols")):
+        candidates.add("all_modes")
+    if any(row["correct_chars"] >= 300 and row["correct_chars"] / (row["correct_chars"] + row["errors"]) >= .995 for row in rows):
+        candidates.add("precision")
+    if any(row["correct_chars"] >= 200 and row["correct_chars"] * 60_000 / row["elapsed_ms"] >= 400 for row in rows):
+        candidates.add("speed300")
+    if lifetime >= 50_000:
+        candidates.add("ten_thousand")
+    if len(days) >= 21:
         candidates.add("week")
-    if any(row["difficulty"] == 8 and row["errors"] == 0 and row["correct_chars"] >= 200 for row in rows):
+    if sum(row["difficulty"] == 8 and row["errors"] == 0 and row["correct_chars"] >= 350 for row in rows) >= 2:
         candidates.add("expert")
     unlocked = []
     for key in ACHIEVEMENTS:

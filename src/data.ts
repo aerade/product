@@ -89,20 +89,20 @@ export const rarityNames: Record<Rarity, string> = {
 }
 
 export const achievementInfo: { key: string; name: string; description: string; rarity: Rarity }[] = [
-  { key: 'first', name: 'Первый шаг', description: 'Завершить первую тренировку', rarity: 'common' },
-  { key: 'five', name: 'Вошёл во вкус', description: 'Завершить 5 тренировок', rarity: 'common' },
-  { key: 'clean', name: 'Чистая строка', description: '25 символов без ошибки', rarity: 'uncommon' },
-  { key: 'thousand', name: 'Тысяча знаков', description: 'Напечатать 1 000 символов', rarity: 'uncommon' },
-  { key: 'regular', name: 'Ритм', description: 'Заниматься в 3 разных дня', rarity: 'uncommon' },
-  { key: 'speed', name: 'Быстрые пальцы', description: 'Достичь 200 символов в минуту', rarity: 'rare' },
-  { key: 'streak', name: 'Серия без ошибок', description: '100 символов без ошибки', rarity: 'rare' },
-  { key: 'polyglot', name: 'Два языка', description: 'Завершить тренировку на русском и английском', rarity: 'rare' },
-  { key: 'all_modes', name: 'Все режимы', description: 'Завершить каждый из четырёх режимов', rarity: 'rare' },
-  { key: 'precision', name: 'Почти идеально', description: 'Точность от 98% на 100 символах', rarity: 'epic' },
-  { key: 'speed300', name: 'На ускорении', description: 'Достичь 300 символов в минуту', rarity: 'epic' },
-  { key: 'ten_thousand', name: 'Большая дистанция', description: 'Напечатать 10 000 символов', rarity: 'epic' },
-  { key: 'week', name: 'Неделя практики', description: 'Заниматься в 7 разных дней', rarity: 'legendary' },
-  { key: 'expert', name: 'Восьмой уровень', description: 'Пройти сложность 8 без ошибки, набрав 200 символов', rarity: 'legendary' },
+  { key: 'first', name: 'Первый шаг', description: '3 занятия: 40+ знаков и 15+ секунд', rarity: 'common' },
+  { key: 'five', name: 'Вошёл во вкус', description: '12 занятий: 40+ знаков и 15+ секунд', rarity: 'common' },
+  { key: 'clean', name: 'Чистая строка', description: '120 знаков без единой ошибки', rarity: 'uncommon' },
+  { key: 'thousand', name: 'Пять тысяч', description: 'Напечатать 5 000 знаков всего', rarity: 'uncommon' },
+  { key: 'regular', name: 'Ритм', description: '7 дней: по 40+ знаков и 15+ секунд', rarity: 'uncommon' },
+  { key: 'speed', name: 'Быстрые пальцы', description: '260 зн/мин на дистанции 120 знаков', rarity: 'rare' },
+  { key: 'streak', name: 'Серия без ошибок', description: '240 знаков без единой ошибки', rarity: 'rare' },
+  { key: 'polyglot', name: 'Два языка', description: 'По 3 занятия RU и EN: 100+ знаков, 15+ секунд', rarity: 'rare' },
+  { key: 'all_modes', name: 'Все режимы', description: 'По 3 занятия в 4 режимах: ур. 3+, 40+ знаков, 15+ секунд', rarity: 'rare' },
+  { key: 'precision', name: 'Почти идеально', description: 'Точность 99,5% на 300 знаках', rarity: 'epic' },
+  { key: 'speed300', name: 'На ускорении', description: '400 зн/мин на дистанции 200 знаков', rarity: 'epic' },
+  { key: 'ten_thousand', name: 'Большая дистанция', description: 'Напечатать 50 000 знаков всего', rarity: 'epic' },
+  { key: 'week', name: 'Три недели', description: '21 день: по 40+ знаков и 15+ секунд', rarity: 'legendary' },
+  { key: 'expert', name: 'Восьмой уровень', description: 'Дважды пройти ур. 8 без ошибок: 350+ знаков', rarity: 'legendary' },
 ]
 
 export const modeName: Record<Mode, string> = { words: 'Слова', sentences: 'Предложения', code: 'Код', symbols: 'Символы' }

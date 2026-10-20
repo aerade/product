@@ -1,3 +1,5 @@
+@font-face{font-family:KeyflowPixel;src:url('/fonts/PressStart2P-Regular.ttf') format('truetype');font-style:normal;font-weight:400;font-display:swap}
+
 :root[data-theme="dark"]{
   --bg:#090a0c;--surface:#111316;--surface2:#1a1c20;--surface3:#24262a;
   --line:#36393d;--soft:#a8adb1;--muted:#7f8589;--white:#f7f8f8;--lime:#f2f3f3;
@@ -50,35 +52,33 @@
 .rarity-filters{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 20px}
 .rarity-filters button{padding:9px 12px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--soft);font-family:var(--mono);font-size:10px}
 .rarity-filters button:hover,.rarity-filters button.selected{color:var(--white);border-color:var(--white);background:var(--surface2)}
-.awards-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.awards-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;max-width:980px}
 .award-card[class*="rarity-"]{
-  --rarity-edge:#e5eaee;--rarity-glow:#54d99f55;--card-art:url('/achievement-cards/common.png');
-  min-width:0;min-height:330px;aspect-ratio:1122/1402;
-  display:flex;flex-direction:column;align-items:center;
-  padding:clamp(42px,4.5vw,52px) clamp(34px,3.5vw,44px) clamp(50px,5vw,60px);
+  --rarity-edge:#e5eaee;--rarity-glow:#54d99f55;--card-art:url('/achievement-cards/common.png');--rarity-label-top:9%;
+  min-width:0;min-height:390px;aspect-ratio:1122/1402;padding:0;
   border:0!important;border-radius:0!important;
   background:var(--card-art) center/100% 100% no-repeat!important;
   color:#f7f8f8;text-align:center;overflow:visible;isolation:isolate;
   image-rendering:pixelated;transition:transform .17s,filter .17s;
 }
 .award-card.rarity-uncommon{--rarity-edge:#55ccdc;--rarity-glow:#55ccdc66;--card-art:url('/achievement-cards/uncommon.png')}
-.award-card.rarity-rare{--rarity-edge:#738cff;--rarity-glow:#738cff77;--card-art:url('/achievement-cards/rare.png')}
-.award-card.rarity-epic{--rarity-edge:#d883ff;--rarity-glow:#d883ff88;--card-art:url('/achievement-cards/epic.png')}
-.award-card.rarity-legendary{--rarity-edge:#ffd777;--rarity-glow:#ffd777aa;--card-art:url('/achievement-cards/legendary.png')}
-.award-card.locked{filter:brightness(.87)}
+.award-card.rarity-rare{--rarity-edge:#738cff;--rarity-glow:#738cff77;--card-art:url('/achievement-cards/rare.png');--rarity-label-top:14%}
+.award-card.rarity-epic{--rarity-edge:#d883ff;--rarity-glow:#d883ff88;--card-art:url('/achievement-cards/epic.png');--rarity-label-top:15%}
+.award-card.rarity-legendary{--rarity-edge:#ffd777;--rarity-glow:#ffd777aa;--card-art:url('/achievement-cards/legendary.png');--rarity-label-top:19%}
+.award-card.locked{filter:brightness(.86) saturate(.82)}
 .award-card.unlocked{filter:drop-shadow(0 5px 0 #050608) drop-shadow(0 0 12px var(--rarity-glow))}
 .award-card[class*="rarity-"]:hover{transform:translateY(-4px)}
-.award-top{width:100%;height:23px;min-height:23px;justify-content:center;color:var(--rarity-edge)!important}
-.award-top svg{display:none}
-.award-rarity{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.11em;font-weight:700;text-shadow:0 1px 2px #030508}
-.award-mark{height:96px;display:flex;align-items:center;justify-content:center;margin:4px 0 0}
-.award-mark img{display:block;width:94px;height:94px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 5px 0 #020305)}
+.award-top{position:absolute;top:var(--rarity-label-top);left:10%;right:10%;height:auto;justify-content:center;color:var(--rarity-edge)!important;transform:translateY(-50%)}
+.award-rarity{font-family:KeyflowPixel,monospace;font-size:clamp(8px,.9vw,10px);line-height:1.45;text-transform:uppercase;letter-spacing:0;text-shadow:2px 2px 0 #030508}
+.award-mark{position:absolute;top:25%;left:50%;width:38%;height:30%;display:flex;align-items:center;justify-content:center;margin:0;transform:translateX(-50%)}
+.award-mark img{display:block;width:100%;height:100%;max-width:160px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 5px 0 #020305)}
 .award-card.locked .award-mark img{filter:grayscale(.7) brightness(.72) drop-shadow(0 5px 0 #020305)}
 .award-card.rarity-epic.unlocked .award-mark img,.award-card.rarity-legendary.unlocked .award-mark img{filter:drop-shadow(0 0 10px var(--rarity-glow))}
-.award-card h3{font-family:var(--mono);font-size:14px;letter-spacing:-.03em;line-height:1.3;margin:auto 0 7px;color:#f7f8f8!important}
-.award-card p{font-size:11px;line-height:1.45;color:#bbc8d0!important;min-height:31px;margin:0 0 12px}
-.award-status{display:inline-block;padding:5px 7px;margin-bottom:5px;border:1px solid var(--rarity-edge);color:var(--rarity-edge)!important;font-family:var(--mono);font-size:9px;letter-spacing:.07em}
-.award-card.locked .award-status{border-color:var(--line);color:var(--soft)!important}
+.award-card h3{position:absolute;top:60%;left:18%;right:18%;margin:0;font-family:KeyflowPixel,monospace;font-size:clamp(9px,1vw,12px);font-weight:400;line-height:1.55;letter-spacing:0;color:#f7f8f8!important}
+.award-card p{position:absolute;top:69%;left:18%;right:18%;margin:0;font-family:KeyflowPixel,monospace;font-size:clamp(7px,.75vw,9px);line-height:1.65;letter-spacing:0;color:#d2dce2!important;overflow-wrap:anywhere}
+.award-status{position:absolute;left:50%;bottom:5.5%;min-width:120px;padding:7px 10px;transform:translateX(-50%);white-space:nowrap;border:2px solid var(--rarity-edge);background:#08111de8;box-shadow:3px 3px 0 #020509;color:var(--rarity-edge)!important;font-family:KeyflowPixel,monospace;font-size:9px;line-height:1.4;letter-spacing:0}
+.award-card.locked .award-status{border-color:#7c8795;color:#e4e8ec!important;background:#0a1019ed}
+.award-card.unlocked .award-status{background:color-mix(in srgb,var(--rarity-edge) 16%,#08111d)}
 .award-card.rarity-legendary.unlocked{animation:legendary-glow 2.8s ease-in-out infinite alternate}
 :root[data-visual-intensity="off"] .award-card.rarity-legendary.unlocked{animation:none}
 @keyframes legendary-glow{to{filter:drop-shadow(0 5px 0 #050608) drop-shadow(0 0 24px var(--rarity-glow))}}
@@ -122,11 +122,10 @@
   .nav-item{font-size:8px;padding:3px 0}
   .compact-action .user-avatar{width:19px;height:19px}
   .key-feedback{left:0}
-  .awards-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-  .award-card[class*="rarity-"]{min-height:330px;padding:42px 34px 50px}
-  .award-mark{height:90px;margin-top:4px}.award-mark img{width:88px;height:88px}
-  .award-card h3{font-size:12px}.award-card p{font-size:10px}
+  .awards-grid{grid-template-columns:minmax(0,420px);justify-content:center;gap:18px}
+  .award-card[class*="rarity-"]{min-height:390px}
+  .award-card h3{font-size:11px}.award-card p{font-size:8px}
 }
-@media(max-width:520px){.awards-grid{grid-template-columns:minmax(0,360px);justify-content:center}}
+@media(max-width:520px){.awards-grid{grid-template-columns:minmax(0,360px);justify-content:center}.award-card h3{font-size:10px}.award-card p{font-size:7px}.award-rarity{font-size:8px}}
 @media(max-width:390px){.theme-grid{grid-template-columns:1fr 1fr}.nav-item span{font-size:7px}}
 @media(prefers-reduced-motion:reduce){.award-card.rarity-legendary.unlocked,.key-feedback,.result-overlay::before,.result-overlay::after{animation:none!important}}

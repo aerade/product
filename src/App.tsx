@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import {
-  Activity, ArrowRight, Award, BarChart3, CheckCircle2,
+  Activity, ArrowRight, Award, BarChart3,
   Code2, Crown, Flame, Keyboard, LockKeyhole,
   LogOut, Medal, RotateCcw, Settings2, Sparkles, Target, Trophy, Type, X,
 } from 'lucide-react'
@@ -56,22 +56,24 @@ function guestProgress(guest: GuestData): Progress {
 
 function earnedAchievementKeys(sessions: GuestSession[]): string[] {
   if (!sessions.length) return []
-  const keys = ['first']
+  const keys: string[] = []
   const total = sessions.reduce((sum, session) => sum + session.correct_chars, 0)
-  const days = new Set(sessions.map((session) => session.created_at.slice(0, 10)))
-  if (sessions.length >= 5) keys.push('five')
-  if (sessions.some((session) => session.errors === 0 && session.correct_chars >= 25)) keys.push('clean')
-  if (total >= 1000) keys.push('thousand')
-  if (days.size >= 3) keys.push('regular')
-  if (sessions.some((session) => session.cpm >= 200 && session.correct_chars >= 25)) keys.push('speed')
-  if (sessions.some((session) => session.errors === 0 && session.correct_chars >= 100)) keys.push('streak')
-  if (new Set(sessions.map((session) => session.language)).size >= 2) keys.push('polyglot')
-  if (new Set(sessions.map((session) => session.mode)).size >= 4) keys.push('all_modes')
-  if (sessions.some((session) => session.accuracy >= 98 && session.correct_chars >= 100)) keys.push('precision')
-  if (sessions.some((session) => session.cpm >= 300 && session.correct_chars >= 60)) keys.push('speed300')
-  if (total >= 10_000) keys.push('ten_thousand')
-  if (days.size >= 7) keys.push('week')
-  if (sessions.some((session) => session.difficulty === 8 && session.errors === 0 && session.correct_chars >= 200)) keys.push('expert')
+  const qualified = sessions.filter((session) => session.correct_chars >= 40 && session.elapsed_ms >= 15_000)
+  const days = new Set(qualified.map((session) => session.created_at.slice(0, 10)))
+  if (qualified.length >= 3) keys.push('first')
+  if (qualified.length >= 12) keys.push('five')
+  if (sessions.some((session) => session.errors === 0 && session.correct_chars >= 120)) keys.push('clean')
+  if (total >= 5_000) keys.push('thousand')
+  if (days.size >= 7) keys.push('regular')
+  if (sessions.some((session) => session.correct_chars >= 120 && session.correct_chars * 60_000 / session.elapsed_ms >= 260)) keys.push('speed')
+  if (sessions.some((session) => session.errors === 0 && session.correct_chars >= 240)) keys.push('streak')
+  if (['ru', 'en'].every((language) => qualified.filter((session) => session.language === language && session.correct_chars >= 100).length >= 3)) keys.push('polyglot')
+  if (modes.every((mode) => qualified.filter((session) => session.mode === mode.id && session.difficulty >= 3).length >= 3)) keys.push('all_modes')
+  if (sessions.some((session) => session.correct_chars >= 300 && session.correct_chars / (session.correct_chars + session.errors) >= .995)) keys.push('precision')
+  if (sessions.some((session) => session.correct_chars >= 200 && session.correct_chars * 60_000 / session.elapsed_ms >= 400)) keys.push('speed300')
+  if (total >= 50_000) keys.push('ten_thousand')
+  if (days.size >= 21) keys.push('week')
+  if (sessions.filter((session) => session.difficulty === 8 && session.errors === 0 && session.correct_chars >= 350).length >= 2) keys.push('expert')
   return keys
 }
 
@@ -84,7 +86,7 @@ function saveGuestRun(guest: GuestData, run: Run): { next: GuestData; result: Re
     points: run.points, xp_earned: xpEarned, created_at: new Date().toISOString(),
     elapsed_ms: measure.elapsedMs, correct_chars: run.index, mistake_map: run.mistakes,
   }
-  const sessions = [session, ...guest.sessions].slice(0, 500)
+  const sessions = [session, ...guest.sessions].slice(0, 2000)
   const candidates = earnedAchievementKeys(sessions)
   const existing = new Set(guest.achievements.map((achievement) => achievement.key))
   const unlocked = candidates.filter((key) => !existing.has(key))
@@ -378,7 +380,7 @@ export default function App() {
 
         {page === 'leaderboard' && <><div className="page-heading"><div><h1>Рейтинг</h1></div></div><div className="board-controls"><div className="segmented">{([['wpm', 'Скорость'], ['accuracy', 'Точность'], ['xp', 'Опыт']] as const).map(([value, label]) => <button key={value} type="button" className={boardMetric === value ? 'selected' : ''} onClick={() => setBoardMetric(value)}>{label}</button>)}</div><div className="segmented">{([['today', 'Сегодня'], ['week', 'Неделя'], ['all', 'Всё время']] as const).map(([value, label]) => <button key={value} type="button" className={boardPeriod === value ? 'selected' : ''} onClick={() => setBoardPeriod(value)}>{label}</button>)}</div></div><div className="board-panel"><div className="board-header"><span>МЕСТО / УЧАСТНИК</span><span>{boardMetric === 'wpm' ? 'СКОРОСТЬ' : boardMetric === 'accuracy' ? 'ТОЧНОСТЬ' : 'ОПЫТ'}</span></div>{leaderboard?.rows.length ? leaderboard.rows.map((entry, index) => <div className={`board-row ${entry.id === user?.id ? 'board-me' : ''}`} key={entry.id}><div className="board-person"><span className={`rank rank-${index + 1}`}>{index === 0 ? <Crown size={20} /> : (index + 1).toString().padStart(2, '0')}</span><span className="board-avatar"><Avatar number={entry.avatar || 1} size="small" /></span><span><strong>{entry.name}{entry.id === user?.id ? ' · ты' : ''}</strong><small>{entry.sessions} тренировок</small></span></div><strong className="board-score">{boardMetric === 'accuracy' ? `${Math.round(entry.value)}%` : Math.round(entry.value)} <small>{boardMetric === 'wpm' ? 'WPM' : boardMetric === 'xp' ? 'XP' : ''}</small></strong></div>) : <div className="board-empty"><Medal size={36} /><h3>{serviceOnline ? 'Рейтинг пока пуст' : 'Рейтинг сейчас недоступен'}</h3><p>{serviceOnline ? 'Завершите тренировку в аккаунте.' : 'Для общего рейтинга нужно запустить API.'}</p><button type="button" className="button button-primary" onClick={() => user ? begin() : setAuthOpen(true)}>{user ? 'Начать тренировку' : 'Создать аккаунт'} <ArrowRight size={16} /></button></div>}</div><div className="board-note">Для рейтинга нужны 25 символов и 15 секунд.</div></>}
 
-        {page === 'awards' && <><div className="page-heading"><div><h1>Достижения</h1><p>Новые значки открываются во время тренировок.</p></div><div className="awards-count"><Award size={22} /><strong>{earned.size} / {achievementInfo.length}</strong><span>ОТКРЫТО</span></div></div><div className="rarity-filters" aria-label="Фильтр по редкости">{(['all', 'common', 'uncommon', 'rare', 'epic', 'legendary'] as const).map((rarity) => <button type="button" key={rarity} className={rarityFilter === rarity ? 'selected' : ''} onClick={() => setRarityFilter(rarity)}>{rarity === 'all' ? 'Все' : rarityNames[rarity]}</button>)}</div><div className="awards-grid">{achievementInfo.filter((achievement) => rarityFilter === 'all' || achievement.rarity === rarityFilter).map((achievement) => { const unlocked = earned.has(achievement.key); return <div className={`award-card rarity-${achievement.rarity} ${unlocked ? 'unlocked' : 'locked'}`} key={achievement.key}><div className="award-top"><span className="award-rarity">{rarityNames[achievement.rarity]}</span>{unlocked ? <CheckCircle2 size={18} /> : <LockKeyhole size={16} />}</div><div className="award-mark"><img src={`/achievements/${achievement.key}.png`} alt="" loading="lazy" /></div><h3>{achievement.name}</h3><p>{achievement.description}</p><span className="award-status">{unlocked ? 'ПОЛУЧЕНО' : 'НЕ ОТКРЫТО'}</span></div> })}</div></>}
+        {page === 'awards' && <><div className="page-heading"><div><h1>Достижения</h1><p>Новые значки открываются во время тренировок.</p></div><div className="awards-count"><Award size={22} /><strong>{earned.size} / {achievementInfo.length}</strong><span>ОТКРЫТО</span></div></div><div className="rarity-filters" aria-label="Фильтр по редкости">{(['all', 'common', 'uncommon', 'rare', 'epic', 'legendary'] as const).map((rarity) => <button type="button" key={rarity} className={rarityFilter === rarity ? 'selected' : ''} onClick={() => setRarityFilter(rarity)}>{rarity === 'all' ? 'Все' : rarityNames[rarity]}</button>)}</div><div className="awards-grid">{achievementInfo.filter((achievement) => rarityFilter === 'all' || achievement.rarity === rarityFilter).map((achievement) => { const unlocked = earned.has(achievement.key); return <div className={`award-card rarity-${achievement.rarity} ${unlocked ? 'unlocked' : 'locked'}`} key={achievement.key}><div className="award-top"><span className="award-rarity">{rarityNames[achievement.rarity]}</span></div><div className="award-mark"><img src={`/achievements/${achievement.key}.png`} alt="" loading="lazy" /></div><h3>{achievement.name}</h3><p>{achievement.description}</p><span className="award-status">{unlocked ? 'ОТКРЫТО' : 'ЗАКРЫТО'}</span></div> })}</div></>}
       </main>
     </div>
     {authOpen && <AuthModal onClose={() => setAuthOpen(false)} onSignedIn={(signedIn) => { setUser(signedIn); api.progress().then(setServerProgress).catch(() => {}) }} user={user} onLogout={logout} />}
