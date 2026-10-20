@@ -1,4 +1,3 @@
-/* The nature artwork sets the palette; body copy stays readable at small sizes. */
 :root{
   --pixel-panel:#0d1b2d;
   --pixel-panel-raised:#132741;
@@ -10,22 +9,9 @@
   --pixel-accent:#a5cce9;
   --pixel-shadow:#030b17;
 }
-:root[data-theme="light"]{
-  --pixel-panel:#f8fbfd;
-  --pixel-panel-raised:#eaf2f7;
-  --pixel-panel-deep:#dceaf3;
-  --pixel-line:#83a0b6;
-  --pixel-line-soft:#bed0dc;
-  --pixel-text:#1c3247;
-  --pixel-muted:#516e82;
-  --pixel-accent:#32688f;
-  --pixel-shadow:#b0c3d2;
-}
-
-/* Panels use flat colors, square corners and offset shadows like the pixel art. */
 .page-intro,.stat-card,.mode-card,.typing-card,.keyboard-guide,
 .live-stats,.combo-card,.hint-card,.panel,.history-list,.board-panel,
-.sync-banner,.result-modal,.modal,.settings-modal{
+.sync-banner,.result-modal,.modal{
   background:var(--pixel-panel)!important;
   border:2px solid var(--pixel-line)!important;
   border-radius:3px!important;
@@ -54,7 +40,6 @@
 .stat-value,.stat-value small,.mode-card h3,.history-name strong,.board-score,
 .metric-row strong,.live-number,.result-stats strong{color:var(--pixel-text)!important}
 
-/* Pixel lettering is reserved for navigation, headings and compact labels. */
 .page-intro h1,.page-heading h1{
   font-family:KeyflowPixel,monospace;
   font-size:clamp(19px,2.25vw,30px);
@@ -63,14 +48,14 @@
   color:var(--pixel-text)!important;
 }
 .page-heading h1{color:var(--white)!important}
-.section-heading h2,.settings-content>h3,.result-modal h2,.auth-modal h2{
+.section-heading h2,.result-modal h2,.auth-modal h2{
   font-family:KeyflowPixel,monospace;
   font-size:clamp(12px,1.15vw,16px);
   line-height:1.65;
   letter-spacing:0;
 }
 .mode-card h3,.live-stats h3,.hint-card h3,.board-empty h3,
-.setting-block h4,.history-heading h2{
+  .history-heading h2{
   font-family:KeyflowPixel,monospace;
   font-size:10px;
   line-height:1.6;
@@ -95,9 +80,8 @@
 }
 .practice-controls{border-bottom:2px solid var(--pixel-line-soft)}
 
-/* Controls share a stepped border and short, tactile movement. */
 .button,.segmented button,.rarity-filters button,.sync-banner button,
-.link-button,.icon-button,.text-button,.settings-footer button{
+.link-button,.icon-button,.text-button{
   border-radius:2px;
   font-family:KeyflowPixel,monospace;
   font-size:9px;
@@ -127,7 +111,6 @@
 .icon-button:hover{background:var(--pixel-line-soft)}
 button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--pixel-accent);outline-offset:3px}
 
-/* The typing surface and keyboard remain visually quiet while in use. */
 .typing-card{border-top-width:4px!important}
 .typing-progress,.weak-track{
   height:8px;border:1px solid var(--pixel-line);border-radius:0;
@@ -137,13 +120,12 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .typing-text .typed{color:var(--pixel-accent)}
 .typing-text .pending{color:var(--pixel-muted)}
 .typing-text .current,.keycap-active{background:var(--pixel-accent);color:var(--pixel-panel-deep);border-radius:0;box-shadow:none}
-.type-input-wrap,.auth-form input,.difficulty-select,
-.settings-content select,.settings-content input[type="number"],.settings-content input[type="text"]{
+.type-input-wrap,.auth-form input,.difficulty-select{
   border:2px solid var(--pixel-line);border-radius:2px;
   background:var(--pixel-panel-deep);color:var(--pixel-text);
 }
 .type-input-wrap:focus-within,.auth-form input:focus,
-.difficulty-select:focus,.settings-content select:focus{
+.difficulty-select:focus{
   border-color:var(--pixel-accent);box-shadow:3px 3px 0 var(--pixel-shadow);
 }
 .type-input-wrap textarea{color:var(--pixel-text)}
@@ -154,7 +136,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .metric-row{border-top-color:var(--pixel-line-soft)}
 .bonus-chip{border-radius:2px;background:var(--pixel-accent);color:var(--pixel-panel-deep)}
 
-/* Lists, charts, scores and dialogs use the same visual language. */
 .sync-banner{background:var(--pixel-panel-raised)!important}
 .history-row,.board-row{border-color:var(--pixel-line-soft)}
 .history-row:hover,.board-row:hover{background:var(--pixel-panel-raised)}
@@ -171,19 +152,12 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   border-radius:2px!important;
   color:var(--pixel-text);
 }
-.result-modal,.modal,.settings-modal{border-top-width:4px!important}
+.result-modal,.modal{border-top-width:4px!important}
 .result-symbol{color:var(--pixel-accent)}
 .result-stats>div{box-shadow:2px 2px 0 var(--pixel-shadow)}
 .result-xp,.account-summary strong{color:var(--pixel-accent)}
 .result-unlock{background:var(--pixel-panel-raised);border-radius:2px}
 .auth-form label,.auth-modal .muted{color:var(--pixel-muted)}
-.settings-header,.settings-footer,.setting-row{border-color:var(--pixel-line-soft)}
-.settings-nav{border-color:var(--pixel-line-soft)}
-.settings-nav button,.setting-block,.theme-card,.custom-color-grid{border-radius:2px}
-.settings-nav button.active,.settings-nav button:hover{background:var(--pixel-panel-raised);color:var(--pixel-text)}
-.setting-block,.theme-card,.custom-color-grid{background:var(--pixel-panel-raised);border:1px solid var(--pixel-line-soft)}
-.setting-switch,.setting-switch span{border-radius:2px}
-.theme-preview,.theme-preview-page>i,.theme-preview-page>span i{border-radius:1px}
 
 @media(max-width:950px){
   .sidebar .nav-item{
@@ -194,7 +168,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   .sidebar .nav-item:not(:disabled):hover{background:#1b3048;border-color:#537492;color:#eef6fc}
 }
 @media(min-width:951px){
-  :root:is([data-nav-position="top"],[data-nav-position="bottom"]) .sidebar .nav-item{
+  .sidebar .nav-item{
     border-radius:2px;font-family:KeyflowPixel,monospace;font-size:9px;
   }
 }

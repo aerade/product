@@ -1,4 +1,3 @@
-/* The generated frames keep their full edges inside each element. */
 .leaderboard-page .page-heading {
   margin-bottom: 18px;
 }
@@ -46,12 +45,13 @@
 }
 
 .leaderboard-page .board-panel {
+  box-sizing: border-box;
   position: relative;
   isolation: isolate;
   display: flex;
   flex-direction: column;
-  height: min(72vh, 620px);
-  min-height: 470px;
+  height: min(70vh, 600px);
+  min-height: 450px;
   padding: 46px 47px 35px;
   overflow: visible;
   border: 0 !important;
@@ -66,7 +66,7 @@
   inset: 0;
   content: '';
   pointer-events: none;
-  background: url('/leaderboard/ui/panel-frame.png') 50% 42% / 104% 170% no-repeat;
+  background: url('/leaderboard/ui/panel-frame.png') 50% 44% / 104% 170% no-repeat;
   image-rendering: pixelated;
 }
 
@@ -78,7 +78,7 @@
   gap: 18px;
   min-height: 43px;
   margin: 0 5px;
-  padding: 10px 18px 12px;
+  padding: 15px 18px 7px;
   border-bottom: 1px solid #6d91ae66;
   background: transparent;
   color: #b9cede;
@@ -95,6 +95,15 @@
 .leaderboard-page .board-header-meta small {
   color: #8daab9;
   font: 7px KeyflowPixel, monospace;
+}
+
+.leaderboard-page .board-person .bot-label {
+  display: inline-block;
+  margin: 0 0 0 7px;
+  color: #8daab9;
+  font: 7px KeyflowPixel, monospace;
+  opacity: .7;
+  vertical-align: 1px;
 }
 
 .leaderboard-page .board-list {
@@ -141,6 +150,7 @@
 
 .leaderboard-page .board-note {
   margin-top: 11px;
+  margin-left: 36px;
 }
 
 @media (max-width: 650px) {
@@ -156,8 +166,8 @@
   }
 
   .leaderboard-page .board-panel {
-    height: min(68vh, 580px);
-    min-height: 390px;
+    height: min(66vh, 560px);
+    min-height: 370px;
     padding: 38px 28px 29px;
   }
 

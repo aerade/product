@@ -1,0 +1,80 @@
+.page-progress .stat-card,
+.page-progress .chart-panel,
+.page-progress .weak-panel,
+.page-progress .history-list {
+  border: 20px solid transparent !important;
+  border-radius: 0 !important;
+  background: #0d1c2b !important;
+  border-image-source: url('/progress/panel-frame.png') !important;
+  border-image-slice: 100 fill !important;
+  border-image-width: 20px !important;
+  border-image-repeat: stretch !important;
+  image-rendering: pixelated;
+  filter: drop-shadow(4px 5px 0 #030a14);
+}
+
+.page-progress .stat-card {
+  min-height: 154px;
+  padding: 8px 7px 6px;
+  border-image-source: url('/progress/stat-frame.png') !important;
+}
+.page-progress .stat-card-top span { line-height: 1.5; }
+.page-progress .progress-layout { gap: 17px; }
+.page-progress .chart-panel,
+.page-progress .weak-panel { min-height: 340px; padding: 10px; }
+.page-progress .chart { border-color: #456883; background: repeating-linear-gradient(to top, transparent 0, transparent calc(25% - 1px), #31516b calc(25% - 1px), #31516b 25%); }
+.page-progress .chart svg { color: #9cc9eb; }
+.page-progress .chart-grid { color: #7998ae; }
+.page-progress .weak-track { border: 1px solid #456883; border-radius: 0; background: #091727; }
+.page-progress .weak-track>span { background: #9cc9eb; }
+.page-progress .weak-char,.page-progress .history-mode { border-radius: 0; border-color: #597a96; background: #132a40; color: #d8ebf8; }
+.page-progress .history-list { overflow: hidden; }
+.page-progress .history-row { border-color: #42627c; }
+.page-progress .history-row:hover { background: #142b40; }
+.page-progress .history-metrics>strong { color: #a7d3f2; }
+.page-progress .progress-heading > .button {
+  min-height: 52px;
+  padding: 0 25px;
+  border: 0 !important;
+  background: url('/progress/train-button.png') center / 100% 155% no-repeat !important;
+  box-shadow: none !important;
+  color: #eef7ff !important;
+  text-shadow: 1px 2px #06172a;
+  image-rendering: pixelated;
+}
+.page-progress .progress-heading > .button:hover { filter: brightness(1.12); transform: scale(1.03); }
+.page-progress .progress-heading > .button:active { transform: scale(.99); }
+.page-progress .chart-heading { display: grid; gap: 14px; }
+.page-progress .chart-heading > .section-heading { margin: 0; }
+.page-progress .chart-controls { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.page-progress .chart-controls .segmented { gap: 2px; }
+.page-progress .chart-controls .segmented button { padding: 6px 9px; font-size: 7px; }
+.page-progress .chart { margin-top: 20px; }
+.page-progress .chart-point {
+  position: absolute;
+  z-index: 1;
+  width: 8px;
+  height: 8px;
+  border: 1px solid #d6edff;
+  border-radius: 50%;
+  background: #9cc9eb;
+  box-shadow: 0 0 5px #9cc9eb99;
+  transform: translate(-50%, -50%);
+}
+.page-progress .chart-labels { display: flex; justify-content: space-between; gap: 4px; margin: 7px 0 0 30px; color: #8ea9c0; font-size: 8px; }
+.page-progress .chart-labels span { min-width: 0; text-align: center; }
+.unlock-lock { width: 16px; height: 16px; object-fit: contain; vertical-align: -4px; image-rendering: pixelated; }
+.mode-card-locked .mode-icon { position: relative; }
+.mode-card-locked .mode-icon::after { content: ''; position: absolute; inset: 0; background: #09152299; }
+.practice-controls .control-group:first-child .segmented button:disabled { position: relative; padding-left: 23px; }
+.practice-controls .control-group:first-child .segmented button:disabled { display: inline-flex; align-items: center; gap: 4px; }
+.required-level { color: #95b5ce; font-size: 7px; white-space: nowrap; }
+.board-header > span:first-child,.board-header-meta { transform: translateY(5px); }
+@media(max-width:650px) {
+  .page-progress .stat-card { padding: 5px 3px; }
+  .page-progress .chart-panel,.page-progress .weak-panel { padding: 8px 3px; }
+  .page-progress .history-list { border-width: 14px !important; border-image-width: 14px !important; }
+  .page-progress .chart-controls { justify-content: flex-start; }
+  .page-progress .chart-controls .segmented button { padding: 6px; font-size: 6px; }
+  .page-progress .progress-heading > .button { min-height: 44px; padding: 0 18px; font-size: 7px; }
+}

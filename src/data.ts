@@ -37,49 +37,109 @@ const snippets = [
   { language: 'CSS', text: '.hero {\n  display: grid;\n  gap: 16px;\n}' },
   { language: 'TypeScript', text: 'type User = { id: number; name: string };\nconst ids = users.map((user) => user.id);' },
   { language: 'SQL', text: 'SELECT name, COUNT(*) AS total\nFROM users\nGROUP BY name\nORDER BY total DESC;' },
+  { language: 'Python', text: 'for item in items:\n    print(item.title())' },
+  { language: 'JavaScript', text: 'const colors = ["blue", "green"];\ncolors.push("gold");' },
+  { language: 'HTML', text: '<button type="button">Open menu</button>' },
+  { language: 'CSS', text: '.card:hover {\n  transform: translateY(-2px);\n}' },
+  { language: 'TypeScript', text: 'interface Point { x: number; y: number }\nconst origin: Point = { x: 0, y: 0 };' },
+  { language: 'SQL', text: 'SELECT title, created_at\nFROM notes\nWHERE is_public = TRUE;' },
+  { language: 'Python', text: 'def clamp(value, low, high):\n    return max(low, min(value, high))' },
+  { language: 'JavaScript', text: 'const total = prices.reduce((sum, price) => sum + price, 0);' },
+  { language: 'HTML', text: '<nav aria-label="Main menu">\n  <a href="/">Home</a>\n</nav>' },
+  { language: 'CSS', text: '@media (max-width: 700px) {\n  .grid { grid-template-columns: 1fr; }\n}' },
+  { language: 'TypeScript', text: 'type Status = "idle" | "loading" | "done";\nlet status: Status = "idle";' },
+  { language: 'SQL', text: 'UPDATE tasks\nSET completed = TRUE\nWHERE id = 42;' },
+  { language: 'Python', text: 'with open("notes.txt") as file:\n    lines = file.readlines()' },
+  { language: 'JavaScript', text: 'async function loadUser(id) {\n  return await fetch(`/users/${id}`);\n}' },
+  { language: 'HTML', text: '<form action="/search">\n  <input name="q" required>\n</form>' },
+  { language: 'CSS', text: ':root {\n  --space: 12px;\n  --accent: #72b7e8;\n}' },
+  { language: 'TypeScript', text: 'function first<T>(items: T[]): T | undefined {\n  return items[0];\n}' },
+  { language: 'SQL', text: 'SELECT user_id, SUM(amount) AS balance\nFROM payments\nGROUP BY user_id;' },
+  { language: 'Python', text: 'scores = {"Ada": 98, "Lin": 91}\nprint(sorted(scores.items()))' },
+  { language: 'JavaScript', text: 'const ready = tasks.every(({ done }) => done);\nif (ready) start();' },
+  { language: 'HTML', text: '<article class="story">\n  <h2>Small discoveries</h2>\n</article>' },
+  { language: 'CSS', text: '.panel {\n  padding: 1rem 1.5rem;\n  border-radius: 8px;\n}' },
+  { language: 'TypeScript', text: 'const byId = new Map<number, User>();\nbyId.set(user.id, user);' },
+  { language: 'SQL', text: 'SELECT category, AVG(score)\nFROM results\nHAVING AVG(score) > 80;' },
 ]
 
 const pick = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)]
 const repeat = <T,>(count: number, make: () => T): T[] => Array.from({ length: count }, make)
+const shuffle = <T,>(items: T[]): T[] => {
+  const result = [...items]
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const other = Math.floor(Math.random() * (index + 1))
+    ;[result[index], result[other]] = [result[other], result[index]]
+  }
+  return result
+}
+const sampleUnique = <T,>(items: T[], count: number): T[] => shuffle(items).slice(0, count)
+
+const extendedWords = {
+  ru: [...words.ru, 'лес', 'река', 'ветер', 'снег', 'мост', 'лист', 'гора', 'озеро', 'свет', 'звук', 'птица', 'облако', 'дорога', 'город', 'дерево', 'звезда', 'корабль', 'история', 'встреча', 'решение', 'вопрос', 'ответ', 'событие', 'защита', 'запись', 'картина', 'погода', 'вечер', 'утро', 'весна', 'осень', 'яблоко', 'страница', 'зеркало', 'площадь', 'спокойствие', 'наблюдение', 'воображение', 'исследование', 'путешествие', 'самостоятельность', 'любопытство', 'открытие', 'уверенность', 'творчество', 'внимательность', 'впечатление', 'приглашение', 'представление', 'преимущество'],
+  en: [...words.en, 'forest', 'river', 'wind', 'snow', 'bridge', 'leaf', 'mountain', 'lake', 'light', 'sound', 'bird', 'cloud', 'road', 'city', 'tree', 'star', 'ship', 'story', 'meeting', 'choice', 'question', 'answer', 'event', 'safety', 'record', 'picture', 'weather', 'evening', 'morning', 'spring', 'autumn', 'apple', 'page', 'mirror', 'square', 'quiet', 'observe', 'imagine', 'explore', 'journey', 'independent', 'curiosity', 'discovery', 'careful', 'creative', 'confident', 'wonderful', 'comfortable', 'everywhere', 'remarkable', 'understand', 'improvement', 'achievement', 'thoughtful', 'adventure', 'possibility', 'celebrate', 'connection', 'experience', 'attention', 'precision', 'expression', 'beautiful', 'challenge', 'direction', 'knowledge', 'rhythmical', 'determined', 'opportunity'],
+}
+
+const extendedSentences = {
+  ru: [...sentences.ru, 'Тихий ветер качает ветви над рекой.', 'Утром город просыпается постепенно.', 'Каждая новая задача начинается с первого шага.', 'Яркая звезда появилась над лесом.', 'Небольшая пауза помогает сохранить внимание.', 'На странице осталась важная заметка.', 'Команда проверила план перед началом работы.', 'Дорога к озеру проходит через старый парк.', 'Тёплый свет ложится на деревянный стол.', 'Мы заметили облака над высокой горой.', 'Спокойный ритм помогает печатать ровнее.', 'Вечером книга ждала читателя у окна.', 'Новый маршрут открыл красивый вид на город.', 'В каждом ответе важны ясность и точность.', 'Птица быстро перелетела через широкий мост.', 'Исследование началось с простого вопроса.', 'Путешествие запомнилось встречами и открытиями.', 'Осенний дождь тихо стучал по крыше.', 'Солнечный луч осветил пустую комнату.', 'План изменился после короткого разговора.', 'Ученик внимательно прочитал новое задание.', 'Вдали показались огни вечернего города.', 'Удобная привычка формируется постепенно.', 'Заметки помогают не забыть важные детали.'],
+  en: [...sentences.en, 'A quiet wind moves the branches above the river.', 'The city wakes up slowly in the morning.', 'Every new task begins with a single step.', 'A bright star appeared above the forest.', 'A short break can help you stay focused.', 'An important note remained on the page.', 'The team checked the plan before work began.', 'The road to the lake runs through an old park.', 'Warm light falls across the wooden table.', 'We watched clouds gather over the mountain.', 'A steady rhythm makes typing feel easier.', 'In the evening, a book waited beside the window.', 'A new route revealed a beautiful view of the city.', 'Clear answers depend on careful thought.', 'A bird flew quickly across the old bridge.', 'The study began with a simple question.', 'The journey brought new friends and discoveries.', 'Autumn rain tapped softly against the roof.', 'A ray of sunlight crossed the quiet room.', 'The plan changed after a brief conversation.', 'The student read the new task carefully.', 'Lights appeared across the evening city.', 'A useful habit grows through regular practice.', 'Notes help us remember important details.'],
+}
 
 export function makeExercise(mode: Mode, language: Language, difficulty: Difficulty) {
   if (mode === 'words') {
-    const pool = words[language].filter((word) => difficulty >= 3 || word.length <= (difficulty === 1 ? 7 : 11))
+    const maxLength = difficulty === 1 ? 5 : difficulty === 2 ? 7 : 10
+    const pool = extendedWords[language].filter((word) => word.length <= maxLength)
     const count = [0, 12, 20, 28, 32, 38, 46, 58, 72][difficulty]
-    const text = repeat(count, () => pick(pool)).map((word, index) => {
-      if (difficulty >= 4 && index % 6 === 0) word = word[0].toUpperCase() + word.slice(1)
-      if (difficulty >= 5 && index % 9 === 4) word += `-${Math.floor(10 + Math.random() * 90)}`
-      if (difficulty >= 6 && index % 7 === 3) word += pick([',', ';', ':'])
-      if (difficulty >= 8 && index % 10 === 7) word = `"${word}"`
+    const shuffledPool = sampleUnique(pool, pool.length)
+    const selectedWords = Array.from({ length: count }, (_, index) => shuffledPool[index % shuffledPool.length])
+    const text = selectedWords.map((item, index) => {
+      let word = item
+      if (difficulty >= 4 && index % 5 === 2) word = word[0].toUpperCase() + word.slice(1)
+      if (difficulty >= 5 && index % 7 === 3) word += pick(['-18', '-42', '-307', '_24'])
+      if (difficulty >= 6 && index % 4 === 1) word += pick([',', ';', ':', '!'])
+      if (difficulty >= 7 && index % 6 === 4) word = `(${word})`
+      if (difficulty >= 8 && index % 8 === 5) word = `"${word}"`
       return word
     }).join(' ')
     return { text, label: 'Слова' }
   }
   if (mode === 'sentences') {
     const count = [0, 1, 2, 3, 4, 5, 6, 8, 10][difficulty]
-    const text = repeat(count, () => pick(sentences[language])).map((line, index) => {
-      if (difficulty >= 5 && index % 2 === 0) return `${line.slice(0, -1)} (${2026 + index}).`
-      if (difficulty >= 7 && index % 3 === 1) return `"${line}"`
+    const text = sampleUnique(extendedSentences[language], count).map((sentence, index) => {
+      let line = sentence
+      if (difficulty >= 4 && index % 3 === 1) line = `${line.slice(0, -1)}; ${language === 'ru' ? 'проверь каждую клавишу' : 'check each key'}.`
+      if (difficulty >= 5 && index % 2 === 0) line = `${line.slice(0, -1)} (${2020 + Math.floor(Math.random() * 10)}).`
+      if (difficulty >= 6 && index % 3 === 2) line = `"${line}"`
+      if (difficulty >= 7 && index % 4 === 1) line = `${line.slice(0, -1)} — ${language === 'ru' ? 'шаг' : 'step'} ${Math.floor(10 + Math.random() * 90)}.`
+      if (difficulty >= 8 && index % 3 === 0) line = line.toUpperCase()
       return line
     }).join(difficulty >= 6 ? '\n' : ' ')
     return { text, label: 'Предложения' }
   }
   if (mode === 'code') {
-    const count = [0, 1, 1, 2, 2, 3, 4, 5, 6][difficulty]
-    const pieces = repeat(count, () => pick(snippets))
+    const count = [0, 1, 2, 2, 3, 4, 5, 6, 8][difficulty]
+    const codePool = difficulty <= 2 ? snippets.slice(0, 6) : snippets
+    const pieces = sampleUnique(codePool, count)
     let text = pieces.map((piece) => piece.text).join('\n\n')
     if (difficulty >= 4) text += '\n// TODO: check(value_42);'
+    if (difficulty >= 5) text += '\nconst labels = ["ready", "waiting", "done"];'
     if (difficulty >= 6) text += '\nconst result = (a, b) => ({ total: a + b, ok: true });'
+    if (difficulty >= 7) text += '\nasync function update(id: number) {\n  const response = await fetch(`/items/${id}`);\n  return response.json();\n}'
     if (difficulty >= 8) text += '\nif (result.ok && result.total >= 42) { console.log("ready!"); }'
     return { text, label: pieces.length === 1 ? pieces[0].language : 'Фрагменты кода' }
   }
-  const alphabet = language === 'ru' ? 'абвгдежзиклмнопрстуфхцчшщыэюя' : 'abcdefghijklmnopqrstuvwxyz'
+  const alphabet = language === 'ru' ? 'абвгдежзийклмнопрстуфхцчшщъыьэюяё' : 'abcdefghijklmnopqrstuvwxyz'
   const digits = '0123456789'
   const punctuation = language === 'ru' ? '!"№;%:?*()-_=+,.' : '!@#$%&*+-=?/;:()_[]{}'
-  const pool = difficulty <= 2 ? `${alphabet}${digits}` : difficulty <= 4 ? `${alphabet}${digits}${punctuation.slice(0, 10)}` : `${alphabet}${alphabet.toUpperCase()}${digits}${punctuation}`
+  const simpleLetters = language === 'ru' ? 'аоиестнвркм' : 'etaoinshrdl'
+  const pool = difficulty === 1 ? simpleLetters : difficulty === 2 ? alphabet : difficulty <= 4 ? `${alphabet}${digits}` : difficulty <= 6 ? `${alphabet}${alphabet.toUpperCase()}${digits}${punctuation}` : `${alphabet}${alphabet.toUpperCase()}${digits}${punctuation}${language === 'ru' ? '№ёЁ' : "'\\`"}`
   const groupCount = [0, 5, 7, 9, 11, 13, 16, 20, 24][difficulty]
-  const groupSize = difficulty >= 6 ? 10 : 8
-  const text = repeat(groupCount, () => repeat(groupSize, () => pick(pool.split(''))).join('')).join(' ')
+  const groupSize = difficulty === 1 ? 5 : difficulty <= 4 ? 8 : difficulty <= 6 ? 10 : 12
+  const characters = pool.split('')
+  const text = repeat(groupCount, () => {
+    const shuffled = sampleUnique(characters, characters.length)
+    return Array.from({ length: groupSize }, (_, index) => shuffled[index % shuffled.length]).join('')
+  }).join(' ')
   return { text, label: 'Символы' }
 }
 

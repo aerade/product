@@ -37,6 +37,7 @@ export const api = {
   leaderboard: (metric: Leaderboard['metric'], period: Leaderboard['period']) => request<Leaderboard>(`/leaderboard?metric=${metric}&period=${period}`),
   save: (session: {
     mode: Mode; language: Language; difficulty: Difficulty; elapsed_ms: number; correct_chars: number;
-    errors: number; points: number; mistake_map: Record<string, number>
+    errors: number; points: number; xp_bonus_chars: number; xp_bonus_points: number;
+    mistake_map: Record<string, number>
   }) => request<{ xp_earned: number; user: User; unlocked: string[]; wpm: number; cpm: number; accuracy: number }>('/practice', { method: 'POST', body: JSON.stringify(session) }),
 }

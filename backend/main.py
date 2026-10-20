@@ -1,5 +1,3 @@
-"""Small same-origin API for accounts, saved practice and leaderboards."""
-
 from __future__ import annotations
 
 import hashlib
@@ -172,6 +170,8 @@ class PracticeBody(BaseModel):
     correct_chars: int = Field(ge=1, le=20_000)
     errors: int = Field(ge=0, le=20_000)
     points: int = Field(ge=0, le=1_000_000)
+    xp_bonus_chars: int = Field(default=0, ge=0, le=20_000)
+    xp_bonus_points: int = Field(default=0, ge=0, le=1_000_000)
     mistake_map: dict[str, int] = Field(default_factory=dict)
 
 
@@ -313,6 +313,11 @@ def unlock_achievements(db: sqlite3.Connection, user_id: int) -> list[str]:
 
 @app.post("/api/practice", status_code=201)
 def save_practice(body: PracticeBody, user: Annotated[dict, Depends(require_user)]):
+    required_level = {"words": 1, "sentences": 2, "symbols": 3, "code": 4}[body.mode]
+    if user["level"] < required_level or body.difficulty > user["level"]:
+        raise HTTPException(403, "Этот режим или сложность пока не открыты")
+    if body.xp_bonus_chars > body.correct_chars or body.xp_bonus_points > body.points:
+        raise HTTPException(422, "Некорректные бонусные показатели")
     clean_map = {key[:12]: min(int(value), 1000) for key, value in body.mistake_map.items() if key and int(value) > 0}
     elapsed_minutes = body.elapsed_ms / 60_000
     cpm = round(body.correct_chars / elapsed_minutes, 1)
@@ -321,6 +326,7 @@ def save_practice(body: PracticeBody, user: Annotated[dict, Depends(require_user
     wpm = round(cpm / 5, 1)
     accuracy = round(body.correct_chars / (body.correct_chars + body.errors) * 100, 1)
     xp = max(10, round(body.correct_chars * (accuracy / 100) / 3 + body.points / 40))
+    xp += round(body.xp_bonus_chars * (accuracy / 100) / 3 + body.xp_bonus_points / 40)
     with database() as db:
         db.execute(
             """INSERT INTO practice_sessions
